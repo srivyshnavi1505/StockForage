@@ -34,6 +34,4 @@ Userapp.post('/login',async(req,res)=>{
     res.status(200).json({message:"login succes", payload:user})
 })
 
-Userapp.get('/logout',verifyToken,async(req,res)=>{
-    console.log(req.user)
-})
+//write logout code
