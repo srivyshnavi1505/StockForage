@@ -11,6 +11,11 @@ const userschema = new Schema({
         required:[true,'email is required'],
         unique:[true, 'email already exists']
     },
+    password:{
+        type:String,
+        required:[true,'enter password'],
+        minLength:3
+    },
     mobile:{
         type:Number,
         min:99999999,

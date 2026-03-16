@@ -1,7 +1,7 @@
 import exp from 'express'
 import bcrypt from 'bcryptjs'
 import { userModel } from '../models/usermodel.js'
-import verifyToken from '../middlewares/verifyToken'
+import {verifyToken} from '../middlewares/verifyToken.js'
 import { authenticate } from '../services/Authservices.js'
 
 export const Userapp= exp.Router()

@@ -16,9 +16,11 @@ async function connectDB() {
     
 }
 connectDB()
+function ErrorHandler(err,req,res,next){
+    res.status(400).json({message:"error occured",payload:err.message})
+}
 
 //middlewares
 app.use(exp.json()) //body parsing middleware
-
-//middlewares for routes
-app.use('/user-api',Userapp)
+app.use('/user-api',Userapp) //middlewares for routes
+app.use(ErrorHandler) //error handling middleware
