@@ -1,0 +1,21 @@
+GET http://localhost:3000/user-api/users
+###
+
+POST http://localhost:3000/user-api/register
+Content-Type: application/json
+
+{
+    "username":"varsha",
+    "email":"var@gamil.com",
+    "password":"1234",
+    "mobile":90909090909
+}
+###
+
+POST http://localhost:3000/user-api/login
+Content-Type: application/json
+
+{
+    "email":"var@gamil.com",
+    "password":"1234"
+}
