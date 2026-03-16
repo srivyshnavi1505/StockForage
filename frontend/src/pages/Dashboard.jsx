@@ -1,12 +1,11 @@
-import { useState } from "react";
+import { useContext } from "react";
 import Sidebar from "../components/Sidebar";
+import StockCard from "../components/StockCard";
+import { AppContext } from "../context/AppContext";
 
 function Dashboard() {
 
-const initialWallet = 100000;
-
-const [wallet, setWallet] = useState(initialWallet);
-const [portfolio, setPortfolio] = useState([]);
+const {wallet,portfolioValue,totalProfit} = useContext(AppContext);
 
 const stocks = [
 { name: "AAPL", price: 180, change: "+1.2%" },
@@ -15,42 +14,13 @@ const stocks = [
 { name: "MSFT", price: 320, change: "+0.6%" }
 ];
 
-const buyStock = (stock) => {
-
-if(wallet < stock.price){
-alert("Not enough balance");
-return;
-}
-
-setWallet(wallet - stock.price);
-setPortfolio([...portfolio, stock]);
-
-};
-
-const sellStock = (stockIndex) => {
-
-const stock = portfolio[stockIndex];
-
-setWallet(wallet + stock.price);
-
-const updated = [...portfolio];
-updated.splice(stockIndex,1);
-
-setPortfolio(updated);
-
-};
-
-const portfolioValue = portfolio.reduce((total, stock) => total + stock.price, 0);
-
-const totalProfit = portfolioValue + wallet - initialWallet;
-
 return (
 
 <div className="bg-gray-100 min-h-screen">
 
 <div className="flex">
 
-<Sidebar />
+<Sidebar/>
 
 <div className="flex-1 p-6">
 
@@ -77,62 +47,21 @@ ${totalProfit}
 
 </div>
 
-{/* Market Table */}
+{/* Market Section */}
 
 <div className="bg-white shadow rounded-lg p-6">
 
 <h2 className="text-xl font-bold mb-4">Market</h2>
 
-<table className="w-full text-left">
+<div className="grid md:grid-cols-2 gap-4">
 
-<thead className="border-b">
-<tr>
-<th className="py-2">Stock</th>
-<th>Price</th>
-<th>Change</th>
-<th>Action</th>
-</tr>
-</thead>
+{stocks.map((stock,index)=>(
 
-<tbody>
-
-{stocks.map((stock, index) => (
-
-<tr key={index} className="border-b">
-
-<td className="py-3">{stock.name}</td>
-
-<td>${stock.price}</td>
-
-<td className={stock.change.includes("+") ? "text-green-500" : "text-red-500"}>
-{stock.change}
-</td>
-
-<td>
-
-<button
-onClick={() => buyStock(stock)}
-className="bg-green-500 text-white px-3 py-1 rounded mr-2 hover:bg-green-600"
->
-Buy
-</button>
-
-<button
-onClick={() => sellStock(index)}
-className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
->
-Sell
-</button>
-
-</td>
-
-</tr>
+<StockCard key={index} stock={stock}/>
 
 ))}
 
-</tbody>
-
-</table>
+</div>
 
 </div>
 
