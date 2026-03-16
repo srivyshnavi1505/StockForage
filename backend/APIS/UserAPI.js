@@ -1,8 +1,7 @@
 import exp from 'express'
-import bcrypt from 'bcryptjs'
 import { userModel } from '../models/usermodel.js'
 import {verifyToken} from '../middlewares/verifyToken.js'
-import { authenticate } from '../services/Authservices.js'
+import { authenticate,register } from '../services/Authservices.js'
 
 export const Userapp= exp.Router()
 
@@ -14,13 +13,10 @@ Userapp.get('/users',async(req,res)=>{
 
 Userapp.post('/register',async(req,res)=>{
     let newuser=req.body
-    let userdoc= new userModel(newuser)
-
-    userdoc.password = await bcrypt.hash(newuser.password, 10);
-    await userdoc.save()
-
-    res.status(201).json({message:"user created",payload:userdoc})
+    let userdoc= await register({...newuser})
+    res.status(201).json({message:"user created",payload:newuser})
 })
+
 
 Userapp.post('/login',async(req,res)=>{
     const {email,password}= req.body

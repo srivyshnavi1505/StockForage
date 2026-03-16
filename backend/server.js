@@ -8,7 +8,7 @@ const app = exp()
 
 async function connectDB() {
     try{
-        await connect('mongodb://localhost:27017/stocks')
+        await connect(process.env.MONGO_URL)
         console.log("connected to database")
         app.listen(3000,()=>console.log("listening on port 3000...."))
     }
