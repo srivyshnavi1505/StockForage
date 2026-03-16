@@ -3,6 +3,7 @@ import { connect } from 'mongoose'
 import { Userapp } from './APIS/UserAPI.js'
 import cookieParser from 'cookie-parser'
 import { FetchStockInfo } from './APIS/fetchStockInfoAPI.js'
+import cors from 'cors'
 
 const app = exp()
 
@@ -23,6 +24,7 @@ function ErrorHandler(err,req,res,next){
 }
 
 //middlewares
+app.use(cors({origin:['https://localhost:5173']}))
 app.use(cookieParser())
 app.use(exp.json()) //body parsing middleware
 app.use('/user-api',Userapp) //middlewares for routes
