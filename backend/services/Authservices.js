@@ -2,6 +2,18 @@ import jwt from 'jsonwebtoken'
 import bcrypt from "bcryptjs";
 import { userModel } from '../models/usermodel.js';
 
+
+export const register =async(userObj)=>{
+
+    const userDoc=new userModel(userObj)
+    await userDoc.validate()
+    userDoc.password=await bcrypt.hash(userDoc.password,10)
+    const created=await userDoc.save()
+    const newUserObj={...created._doc}
+    delete newUserObj.password
+    return newUserObj
+}
+
 export const authenticate=async({email,password})=>{
 
     //check if user with role and email exists
