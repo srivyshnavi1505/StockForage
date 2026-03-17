@@ -1,31 +1,34 @@
-import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { useAuth } from "../stores/authStore";
+import { useNavigate } from "react-router";
+import { useEffect } from "react";
 import toast from "react-hot-toast";
+import { Link } from "react-router-dom";
 
 function Login(){
 
-const [email,setEmail]=useState("");
-const [password,setPassword]=useState("");
+const {register,handleSubmit,formState:{errors}}=useForm()
+  const login=useAuth((state)=>(state.login))
+  const isAuthenticated=useAuth((state)=>(state.isAuthenticate))
+  const currentUser=useAuth((state)=>(state.currentUser))
+  const navigate=useNavigate()
 
-const navigate=useNavigate();
-
-const handleSubmit=(e)=>{
-e.preventDefault();
-
-if(!email || !password){
-toast.error("Fill all fields");
-return;
-}
-
-toast.success("Login Successful");
-navigate("/dashboard");
-};
+  const onUserLogin=async(userCredObj)=>{
+    await login(userCredObj)
+  }
+  
+  useEffect(()=>{
+    if(isAuthenticated){
+      
+      navigate("/dashboard")
+    }
+  },[isAuthenticated,currentUser])
 
 return(
 
 <div className="flex justify-center items-center h-screen">
 
-<form onSubmit={handleSubmit} className="bg-white p-10 shadow w-80">
+<form onSubmit={handleSubmit(onUserLogin)} className="bg-white p-10 shadow w-80">
 
 <h2 className="text-xl mb-5 text-center">Login</h2>
 
@@ -33,14 +36,14 @@ return(
 type="email"
 placeholder="Email"
 className="border p-2 mb-3 w-full"
-onChange={(e)=>setEmail(e.target.value)}
+{...register("email", { required: true })}
 />
 
 <input
 type="password"
 placeholder="Password"
 className="border p-2 mb-3 w-full"
-onChange={(e)=>setPassword(e.target.value)}
+{...register("password", { required: true })}
 />
 
 <button className="bg-blue-500 text-white px-4 py-2 w-full">
