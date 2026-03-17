@@ -21,7 +21,7 @@ useEffect(()=>{
   if(isAuthenticated){
     navigate("/dashboard");
   }
-},[isAuthenticated, currentUser]);
+},[isAuthenticated, currentUser,navigate]);
 
 return(
 

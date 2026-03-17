@@ -1,30 +1,58 @@
 import { Link } from "react-router-dom";
 
-function Navbar(){
+function Navbar() {
+  return (
+    <nav className="bg-gray-900 text-white px-10 py-4 flex justify-between items-center shadow-lg">
 
-return(
+      {/* Logo + Brand */}
+      <div className="flex items-center gap-3">
+        <img
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQwMRN8hunzhTSBKTij6CP0MWS7zF56t_Es6Q&s"
+          alt="logo"
+          className="w-10 h-10 rounded-full border-2 border-blue-500"
+        />
 
-<nav className="bg-black text-white px-8 py-4 flex justify-between items-center">
+        <h1 className="text-2xl font-bold tracking-wide text-blue-400">
+          StockForage
+        </h1>
+      </div>
 
-<h1 className="text-xl font-bold">
-StockForage
-</h1>
+      {/* Navigation Links */}
+      <div className="flex items-center gap-8 text-sm font-medium">
 
-<div className="flex gap-6">
+        <Link className="hover:text-blue-400 transition" to="/">Home</Link>
 
-<Link to="/">Home</Link>
-<Link to="/portfolio">Portfolio</Link>
-<Link to="/leaderboard">Leaderboard</Link>
-<Link to="/history">Trade History</Link>
-<Link to="/login">Login</Link>
-<Link to="/register">Register</Link>
+        <Link className="hover:text-blue-400 transition" to="/portfolio">
+          Portfolio
+        </Link>
 
-</div>
+        <Link className="hover:text-blue-400 transition" to="/leaderboard">
+          Leaderboard
+        </Link>
 
-</nav>
+        <Link className="hover:text-blue-400 transition" to="/history">
+          Trade History
+        </Link>
 
-);
+        {/* Auth Buttons */}
+        <Link
+          className="border border-blue-500 px-4 py-1 rounded hover:bg-blue-500 transition"
+          to="/login"
+        >
+          Login
+        </Link>
 
+        <Link
+          className="border border-blue-500 px-4 py-1 rounded hover:bg-blue-500 transition"
+          to="/register"
+        >
+          Register
+        </Link>
+
+      </div>
+
+    </nav>
+  );
 }
 
 export default Navbar;
