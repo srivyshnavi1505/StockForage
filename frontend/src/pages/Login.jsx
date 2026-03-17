@@ -6,13 +6,12 @@ import { Link } from "react-router-dom";
 
 function Login(){
 
-const { register, handleSubmit } = useForm();
 
-const login = useAuth((state)=>state.login);
-const isAuthenticated = useAuth((state)=>state.isAuthenticated);
-const currentUser = useAuth((state)=>state.currentUser);
-
-const navigate = useNavigate();
+const {register,handleSubmit}=useForm()
+  const login=useAuth((state)=>(state.login))
+  const isAuthenticated=useAuth((state)=>(state.isAuthenticated))
+  const currentUser=useAuth((state)=>(state.currentUser))
+  const navigate=useNavigate()
 
 const onUserLogin = async (userCredObj) => {
   await login(userCredObj);
@@ -22,7 +21,7 @@ useEffect(()=>{
   if(isAuthenticated){
     navigate("/dashboard");
   }
-},[isAuthenticated, currentUser, navigate]);
+},[isAuthenticated, currentUser]);
 
 return(
 
