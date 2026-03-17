@@ -2,7 +2,8 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../stores/authStore";
 
 function Navbar(){
-    let currentUser=useAuth((state)=>(state.currentUser))
+let currentUser = useAuth((state)=>(state.currentUser))
+
 
 return(
 
@@ -13,21 +14,56 @@ StockForage
 </h1>
 
 <div className="flex gap-6">
-    {
-        !currentUser?(
-        <><Link to="/">Home</Link>
-<Link to="/portfolio">Portfolio</Link>
-<Link to="/leaderboard">Leaderboard</Link>
-<Link to="/history">Trade History</Link>
-<Link to="/login">Login</Link>
-<Link to="/register">Register</Link>
+
+{
+!currentUser ? (
+<>
+
+<Link className="border border-blue-500 px-4 py-1 rounded hover:bg-blue-500 transition" to="/">
+Home
+</Link>
+
+<Link className="border border-blue-500 px-4 py-1 rounded hover:bg-blue-500 transition" to="/portfolio">
+Portfolio
+</Link>
+
+<Link className="border border-blue-500 px-4 py-1 rounded hover:bg-blue-500 transition" to="/leaderboard">
+Leaderboard
+</Link>
+
+<Link className="border border-blue-500 px-4 py-1 rounded hover:bg-blue-500 transition" to="/history">
+Trade History
+</Link>
+
+<Link className="border border-blue-500 px-4 py-1 rounded hover:bg-blue-500 transition" to="/login">
+Login
+</Link>
+
+<Link className="border border-blue-500 px-4 py-1 rounded hover:bg-blue-500 transition" to="/register">
+Register
+</Link>
+
 </>
-):(<>
-<Link to="/dashboard">Dashboard</Link>
-<Link to="/portfolio">Portfolio</Link>
-<Link to="/leaderboard">Leaderboard</Link>
-<Link to="/history">Trade History</Link></>)
-    }
+) : (
+<>
+<Link className="border border-blue-500 px-4 py-1 rounded hover:bg-blue-500 transition" to="/dashboard">
+Dashboard
+</Link>
+<Link className="border border-blue-500 px-4 py-1 rounded hover:bg-blue-500 transition" to="/portfolio">
+Portfolio
+</Link>
+
+<Link className="border border-blue-500 px-4 py-1 rounded hover:bg-blue-500 transition" to="/leaderboard">
+Leaderboard
+</Link>
+
+<Link className="border border-blue-500 px-4 py-1 rounded hover:bg-blue-500 transition" to="/history">
+Trade History
+</Link>
+
+</>
+)
+}
 
 
 </div>
