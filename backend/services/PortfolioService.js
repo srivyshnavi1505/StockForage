@@ -42,9 +42,9 @@ export async function getPortfolioWithPnL(userId) {
     // Build enriched holdings array
     const holdings = portfolio.holdings.map((h, i) => {
         const livePrice    = livePrices[i]
-        const invested     = h.quantity * h.avgBuyPrice
-        const currentValue = h.quantity * livePrice
-        const pnl          = currentValue - invested
+        const invested     = h.quantity * h.avgBuyPrice //how much money you spent buying these shares
+        const currentValue = h.quantity * livePrice //what those same shares are worth right now
+        const pnl          = currentValue - invested //profit if positive, loss if negative
         const pnlPct       = invested > 0 ? (pnl / invested) * 100 : 0
 
         return {
@@ -61,9 +61,9 @@ export async function getPortfolioWithPnL(userId) {
     })
 
     // Aggregate into summary
-    const totalInvested = holdings.reduce((sum, h) => sum + h.invested, 0)
-    const totalValue    = holdings.reduce((sum, h) => sum + h.currentValue, 0)
-    const totalPnl      = totalValue - totalInvested
+    const totalInvested = holdings.reduce((sum, h) => sum + h.invested, 0)  //total investments 
+    const totalValue    = holdings.reduce((sum, h) => sum + h.currentValue, 0) //the total value with current holdings
+    const totalPnl      = totalValue - totalInvested  //total profit / total loss
     const totalPnlPct   = totalInvested > 0 ? (totalPnl / totalInvested) * 100 : 0
 
     return {
