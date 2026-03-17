@@ -23,6 +23,7 @@ StockForage
 <Link to="/register">Register</Link>
 </>
 ):(<>
+<Link to="/dashboard">Dashboard</Link>
 <Link to="/portfolio">Portfolio</Link>
 <Link to="/leaderboard">Leaderboard</Link>
 <Link to="/history">Trade History</Link></>)
