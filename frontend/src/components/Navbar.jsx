@@ -4,6 +4,7 @@ import { useAuth } from "../stores/authStore";
 function Navbar(){
 let currentUser = useAuth((state)=>(state.currentUser))
 
+
 return(
 
 <nav className="bg-black text-white px-8 py-4 flex justify-between items-center">
@@ -61,6 +62,7 @@ Trade History
 </>
 )
 }
+
 
 </div>
 
