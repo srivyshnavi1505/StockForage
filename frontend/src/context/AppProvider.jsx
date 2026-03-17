@@ -1,8 +1,5 @@
-/* eslint-disable react-refresh/only-export-components */
-
-import { createContext, useState } from "react";
-
-export const AppContext = createContext();
+import { useState } from "react";
+import { AppContext } from "./AppContext";
 
 export const AppProvider = ({ children }) => {
 
@@ -16,13 +13,10 @@ const buyStock = (stock) => {
 
 if(wallet < stock.price) return;
 
-// reduce wallet
 setWallet(prev => prev - stock.price);
 
-// add stock to portfolio
 setPortfolio(prev => [...prev, stock]);
 
-// add trade history
 setTrades(prev => [
 ...prev,
 {
@@ -36,7 +30,6 @@ date: new Date().toLocaleDateString()
 
 const sellStock = (stock) => {
 
-// remove stock from portfolio
 setPortfolio(prev => {
 
 const index = prev.findIndex(s => s.name === stock.name);
@@ -50,10 +43,8 @@ return updated;
 
 });
 
-// increase wallet
 setWallet(prev => prev + stock.price);
 
-// add trade history
 setTrades(prev => [
 ...prev,
 {
@@ -65,13 +56,11 @@ date: new Date().toLocaleDateString()
 
 };
 
-// portfolio value
 const portfolioValue = portfolio.reduce(
 (total, stock) => total + stock.price,
 0
 );
 
-// profit / loss
 const totalProfit = portfolioValue + wallet - initialWallet;
 
 return (

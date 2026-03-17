@@ -2,8 +2,7 @@ import jwt from 'jsonwebtoken';
 import { config } from 'dotenv';
 config();
 
-export const verifyToken = () => {
-  return (req, res, next) => {
+export const verifyToken = (req,res,next) => {
     try {
       const token = req.cookies?.token;
 
@@ -20,6 +19,5 @@ export const verifyToken = () => {
     } catch (err) {
       const message = err.name === 'TokenExpiredError' ? 'Token expired' : 'Invalid token';
       return res.status(401).json({ message });
-    }
   };
 };

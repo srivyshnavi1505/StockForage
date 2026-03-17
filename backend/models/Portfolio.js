@@ -1,45 +1,18 @@
-import mongoose from 'mongoose';
+import { model, Schema } from 'mongoose'
 
-const holdingSchema = new mongoose.Schema(
-  {
-    symbol: { 
-        type: String,
-        required: true,
-        uppercase: true },
-    companyName: {
-            type: String, 
-            default: ''
-         },
-    quantity: { 
-        type: Number,
-         required: true,
-         min: 1 
-        },
+const holdingSchema = new Schema({
+    symbol:      { type: String, required: [true, 'symbol is required'], uppercase: true },
+    companyName: { type: String, default: '' },
+    quantity:    { type: Number, required: [true, 'quantity is required'], min: 1 },
+    avgBuyPrice: { type: Number, required: [true, 'average buy price is required'] },
+    boughtAt:    { type: Date, default: Date.now },
+}, { _id: false })
 
-    avgBuyPrice: { 
-        type: Number,
-         
-        required: true },
+const portfolioSchema = new Schema({
+    user:     { type: Schema.Types.ObjectId, ref: 'User', required: [true, 'user is required'], unique: true },
+    holdings: [holdingSchema],
+}, {
+    timestamps: true,
+})
 
-    boughtAt: { 
-        type: Date,
-         default: Date.now },
-  },
-  { _id: false }
-);
-
-const portfolioSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.Types.ObjectId,
-     ref: 'User',
-      required: true, 
-      unique: true },
-  holdings: [holdingSchema],
-  updatedAt: {
-     type: Date,
-      default: Date.now },
-},{
-    timestamps:true
-});
-
-const Portfolio = mongoose.model('Portfolio', portfolioSchema);
-export default Portfolio;
+export const portfolioModel = model('Portfolio', portfolioSchema)

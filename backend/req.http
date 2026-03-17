@@ -19,3 +19,9 @@ Content-Type: application/json
     "email":"var@gamil.com",
     "password":"1234"
 }
+###
+
+GET  http://localhost:3000/user-api/logout
+
+###
+GET  http://localhost:3000/stock/AAPL
