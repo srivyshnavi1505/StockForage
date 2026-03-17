@@ -2,12 +2,11 @@ import { useForm } from "react-hook-form";
 import { useAuth } from "../stores/authStore";
 import { useNavigate } from "react-router";
 import { useEffect } from "react";
-import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
 
 function Login(){
 
-const {register,handleSubmit,formState:{errors}}=useForm()
+const {register,handleSubmit}=useForm()
   const login=useAuth((state)=>(state.login))
   const isAuthenticated=useAuth((state)=>(state.isAuthenticate))
   const currentUser=useAuth((state)=>(state.currentUser))
