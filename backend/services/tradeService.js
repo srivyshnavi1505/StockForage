@@ -3,7 +3,7 @@ import { config } from 'dotenv'
 import { userModel } from '../models/usermodel.js'
 import { portfolioModel } from '../models/Portfolio.js'
 import { tradeModel } from '../models/Trade.js'
-import { portfolioSnapshotModel } from '../models/PortfolioSnapShot.js'
+import { portfolioSnapshotModel } from '../models/PortfolioSnapshot.js'
 config()
 
 async function getLivePrice(symbol) {
@@ -39,11 +39,11 @@ export async function executeTrade({ userId, symbol, type, quantity }) {
 
     // 3. Save originals for rollback
     const originalCash     = user.cash
-    const originalHoldings = structuredClone(portfolio.holdings)
+    const originalHoldings = portfolio.holdings.map(h => ({...h.toObject()}))
 
     try {
 
-        // ── BUY ──────────────────────────────────────────────────────────
+        //── BUY 
         if (type === 'BUY') {
             if (user.cash < total) {
                 const err = new Error(
@@ -72,7 +72,7 @@ export async function executeTrade({ userId, symbol, type, quantity }) {
             }
         }
 
-        // ── SELL ─────────────────────────────────────────────────────────
+        // SELL 
         if (type === 'SELL') {
             const existing = portfolio.holdings.find(h => h.symbol === symbol)
 

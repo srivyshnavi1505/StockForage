@@ -1,6 +1,8 @@
 import exp from 'express'
 import mongoose from "mongoose";
 import { Userapp } from './APIS/UserAPI.js'
+import {PortfolioApp} from './APIS/PortfolioAPI.js'
+import { TradeApp} from './APIS/TradeAPI.js'
 import cookieParser from 'cookie-parser'
 
 import { FetchStockInfo } from './APIS/fetchStockInfoAPI.js'
@@ -38,5 +40,7 @@ app.use(cookieParser())
 app.use(exp.json()) //body parsing middleware
 app.use('/user-api',Userapp) //middlewares for routes
 app.use('/stock',FetchStockInfo)
+app.use('/trade-api', TradeApp)
+app.use('/portfolio-api', PortfolioApp)
 app.use(ErrorHandler) //error handling middleware
 connectDB()
