@@ -1,5 +1,5 @@
 import exp from 'express'
-import { connect } from 'mongoose'
+import mongoose from "mongoose";
 import { Userapp } from './APIS/UserAPI.js'
 import cookieParser from 'cookie-parser'
 
@@ -17,7 +17,7 @@ app.use(cookieParser())
 
 async function connectDB() {
     try{
-        await connect(process.env.MONGO_URL)
+        await mongoose.connect(process.env.MONGO_URL)
         console.log("connected to database")
         startStockSnapshotCron();
         app.listen(3000,()=>console.log("listening on port 3000...."))
