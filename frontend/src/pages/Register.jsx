@@ -19,11 +19,9 @@ function Register() {
 
     try {
 
-      let { role, ...userObj } = newUser;
-
       let resObj = await axios.post(
         "http://localhost:3000/user-api/register",
-        userObj
+        newUser
       );
 
       console.log(resObj);
@@ -33,11 +31,13 @@ function Register() {
       }
 
     } catch (error) {
-  console.log("FULL ERROR:", error.response);
-  console.log("ERROR DATA:", error.response?.data);
 
-  setError(error.response?.data?.message || "Registration failed");
-}
+      console.log("FULL ERROR:", error.response);
+      console.log("ERROR DATA:", error.response?.data);
+
+      setError(error.response?.data?.message || "Registration failed");
+
+    }
 
     setLoading(false);
   };
@@ -62,14 +62,19 @@ function Register() {
           className="border p-2 mb-3 w-full"
           {...register("username", { required: true })}
         />
-        {errors.name && <p className="text-red-500 text-sm">Name is required</p>}
+        {errors.username && (
+          <p className="text-red-500 text-sm">Name is required</p>
+        )}
 
         <input
+          type="email"
           placeholder="Email"
           className="border p-2 mb-3 w-full"
           {...register("email", { required: true })}
         />
-        {errors.email && <p className="text-red-500 text-sm">Email is required</p>}
+        {errors.email && (
+          <p className="text-red-500 text-sm">Email is required</p>
+        )}
 
         <input
           type="password"
@@ -77,14 +82,19 @@ function Register() {
           className="border p-2 mb-3 w-full"
           {...register("password", { required: true })}
         />
-        {errors.password && <p className="text-red-500 text-sm">Password is required</p>}
+        {errors.password && (
+          <p className="text-red-500 text-sm">Password is required</p>
+        )}
 
         <input
+          type="tel"
           placeholder="Mobile Number"
           className="border p-2 mb-3 w-full"
           {...register("mobile", { required: true })}
         />
-        {errors.mobile && <p className="text-red-500 text-sm">Mobile number is required</p>}
+        {errors.mobile && (
+          <p className="text-red-500 text-sm">Mobile number is required</p>
+        )}
 
         <button
           className="bg-green-500 text-white px-4 py-2 w-full"
