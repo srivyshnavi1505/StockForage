@@ -2,8 +2,12 @@ import exp from 'express'
 import { connect } from 'mongoose'
 import { Userapp } from './APIS/UserAPI.js'
 import cookieParser from 'cookie-parser'
+import cors from 'cors'
 
 const app = exp()
+app.use(cors({origin:['http://localhost:5173'],credentials:true}))
+app.use(exp.json())
+app.use(cookieParser())
 
 async function connectDB() {
     try{
