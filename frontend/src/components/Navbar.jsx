@@ -20,17 +20,17 @@ function Navbar() {
       {/* Navigation Links */}
       <div className="flex items-center gap-8 text-sm font-medium">
 
-        <Link className="hover:text-blue-400 transition" to="/">Home</Link>
+        <Link className="border border-blue-500 px-4 py-1 rounded hover:bg-blue-500 transition" to="/">Home</Link>
 
-        <Link className="hover:text-blue-400 transition" to="/portfolio">
+        <Link className="border border-blue-500 px-4 py-1 rounded hover:bg-blue-500 transition" to="/portfolio">
           Portfolio
         </Link>
 
-        <Link className="hover:text-blue-400 transition" to="/leaderboard">
+        <Link className="border border-blue-500 px-4 py-1 rounded hover:bg-blue-500 transition" to="/leaderboard">
           Leaderboard
         </Link>
 
-        <Link className="hover:text-blue-400 transition" to="/history">
+        <Link className="border border-blue-500 px-4 py-1 rounded hover:bg-blue-500 transition" to="/history">
           Trade History
         </Link>
 
@@ -39,7 +39,7 @@ function Navbar() {
           className="border border-blue-500 px-4 py-1 rounded hover:bg-blue-500 transition"
           to="/login"
         >
-          Login
+          Dashboard
         </Link>
 
         <Link
