@@ -1,34 +1,18 @@
-import { Link } from "react-router-dom";
+import { useAuth } from "../stores/authStore";
 
 function Sidebar(){
 
+const currentUser = useAuth((state)=>state.currentUser);
+
 return(
 
-<div className="bg-gray-900 text-white w-56 min-h-screen p-6">
+<div className="bg-gray-900 text-white w-56 min-h-screen p-6 flex flex-col items-center">
 
-<h2 className="text-lg font-bold mb-6">
-Dashboard
-</h2>
+<p className="text-2xl font-bold mb-2">{currentUser?.username}</p>
 
-<ul className="space-y-4">
+<p className="text-lg text-gray-300">{currentUser?.email}</p>
 
-<li>
-<Link to="/dashboard">Market</Link>
-</li>
-
-<li>
-<Link to="/portfolio">Portfolio</Link>
-</li>
-
-<li>
-<Link to="/history">Trade History</Link>
-</li>
-
-<li>
-<Link to="/leaderboard">Leaderboard</Link>
-</li>
-
-</ul>
+<p className="text-lg text-gray-300">{currentUser?.mobile}</p>
 
 </div>
 
