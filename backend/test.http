@@ -16,8 +16,8 @@ POST http://localhost:3000/user-api/login
 Content-Type: application/json
 
 {
-    "email":"var@gamil.com",
-    "password":"1234"
+    "email":"varshini6324@gmail.com",
+    "password":"123456"
 }
 
 ### 3. FETCH STOCK INFO
