@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
+import { useAuth } from "../stores/authStore";
 
 function Navbar(){
+    let currentUser=useAuth((state)=>(state.currentUser))
 
 return(
 
@@ -11,13 +13,21 @@ StockForage
 </h1>
 
 <div className="flex gap-6">
-
-<Link to="/">Home</Link>
+    {
+        !currentUser?(
+        <><Link to="/">Home</Link>
 <Link to="/portfolio">Portfolio</Link>
 <Link to="/leaderboard">Leaderboard</Link>
 <Link to="/history">Trade History</Link>
 <Link to="/login">Login</Link>
 <Link to="/register">Register</Link>
+</>
+):(<>
+<Link to="/portfolio">Portfolio</Link>
+<Link to="/leaderboard">Leaderboard</Link>
+<Link to="/history">Trade History</Link></>)
+    }
+
 
 </div>
 
