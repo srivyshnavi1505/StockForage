@@ -1,5 +1,3 @@
-
-import mongoose from 'mongoose'
 import axios from 'axios'
 import { config } from 'dotenv'
 import { userModel } from '../models/usermodel.js'
@@ -21,145 +19,136 @@ async function getLivePrice(symbol) {
 }
 
 export async function executeTrade({ userId, symbol, type, quantity }) {
-    const session = await mongoose.startSession()
+
+    // 1. Fetch live price
+    const livePrice = await getLivePrice(symbol)
+    const total = +(livePrice * quantity).toFixed(2)
+
+    // 2. Load user and portfolio
+    const user = await userModel.findById(userId)
+    if (!user) {
+        const err = new Error('User not found')
+        err.status = 404
+        throw err
+    }
+
+    let portfolio = await portfolioModel.findOne({ user: userId })
+    if (!portfolio) {
+        portfolio = new portfolioModel({ user: userId, holdings: [] })
+    }
+
+    // 3. Save originals for rollback
+    const originalCash     = user.cash
+    const originalHoldings = structuredClone(portfolio.holdings)
 
     try {
-        let result
 
-        await session.withTransaction(async () => {
-
-            // 1. Fetch live price from Finnhub (outside transaction — network call)
-            const livePrice = await getLivePrice(symbol)
-            const total = livePrice * quantity
-
-            // 2. Load user and portfolio
-            const user = await userModel.findById(userId).session(session)
-            if (!user) {
-                const err = new Error('User not found')
-                err.status = 404
+        // ── BUY ──────────────────────────────────────────────────────────
+        if (type === 'BUY') {
+            if (user.cash < total) {
+                const err = new Error(
+                    `Insufficient funds. Need ₹${total}, available ₹${user.cash.toFixed(2)}`
+                )
+                err.status = 400
                 throw err
             }
 
-            let portfolio = await portfolioModel.findOne({ user: userId }).session(session)
-            if (!portfolio) {
-                portfolio = new portfolioModel({ user: userId, holdings: [] })
+            user.cash = +(user.cash - total).toFixed(2)
+
+            const existing = portfolio.holdings.find(h => h.symbol === symbol)
+            if (existing) {
+                const newAvg =
+                    (existing.quantity * existing.avgBuyPrice + quantity * livePrice) /
+                    (existing.quantity + quantity)
+                existing.avgBuyPrice = +newAvg.toFixed(2)
+                existing.quantity    = existing.quantity + quantity
+            } else {
+                portfolio.holdings.push({
+                    symbol,
+                    quantity,
+                    avgBuyPrice: livePrice,
+                    boughtAt: new Date(),
+                })
+            }
+        }
+
+        // ── SELL ─────────────────────────────────────────────────────────
+        if (type === 'SELL') {
+            const existing = portfolio.holdings.find(h => h.symbol === symbol)
+
+            if (!existing) {
+                const err = new Error(`You do not hold any shares of ${symbol}`)
+                err.status = 400
+                throw err
+            }
+            if (existing.quantity < quantity) {
+                const err = new Error(
+                    `Insufficient shares. You hold ${existing.quantity}, tried to sell ${quantity}`
+                )
+                err.status = 400
+                throw err
             }
 
-            // buy
-            if (type === 'BUY') {
-                // Check wallet balance
-                if (user.cash < total) {
-                    const err = new Error(
-                        `Insufficient funds. Need ₹${total.toFixed(2)}, available ₹${user.cash.toFixed(2)}`
-                    )
-                    err.status = 400
-                    throw err
-                }
+            user.cash = +(user.cash + total).toFixed(2)
 
-                // Deduct cash
-                user.cash = user.cash - total
-
-                // Update holding — weighted average if already exists
-                const existingHolding = portfolio.holdings.find(h => h.symbol === symbol)
-
-                if (existingHolding) {
-                    const newAvg =
-                        (existingHolding.quantity * existingHolding.avgBuyPrice + quantity * livePrice) /
-                        (existingHolding.quantity + quantity)
-
-                    existingHolding.avgBuyPrice = newAvg
-                    existingHolding.quantity = existingHolding.quantity + quantity
-                } else {
-                    portfolio.holdings.push({
-                        symbol,
-                        quantity,
-                        avgBuyPrice: livePrice,
-                        boughtAt: new Date(),
-                    })
-                }
+            if (existing.quantity === quantity) {
+                portfolio.holdings = portfolio.holdings.filter(h => h.symbol !== symbol)
+            } else {
+                existing.quantity = existing.quantity - quantity
             }
+        }
 
-            // sell
-            if (type === 'SELL') {
-                const existingHolding = portfolio.holdings.find(h => h.symbol === symbol)
+        // 4. Save user and portfolio
+        await user.save()
+        await portfolio.save()
 
-                // Check if user holds this stock at all
-                if (!existingHolding) {
-                    const err = new Error(`You do not hold any shares of ${symbol}`)
-                    err.status = 400
-                    throw err
-                }
+        // 5. Log the trade
+        await tradeModel.create({
+            user: userId,
+            symbol,
+            type,
+            quantity,
+            price: livePrice,
+            total,
+            executedAt: new Date(),
+        })
 
-                // Check if user holds enough quantity
-                if (existingHolding.quantity < quantity) {
-                    const err = new Error(
-                        `Insufficient shares. You hold ${existingHolding.quantity}, tried to sell ${quantity}`
-                    )
-                    err.status = 400
-                    throw err
-                }
-
-                // Credit cash
-                user.cash = user.cash + total
-
-                // Reduce or remove holding
-                if (existingHolding.quantity === quantity) {
-                    portfolio.holdings = portfolio.holdings.filter(h => h.symbol !== symbol)
-                } else {
-                    existingHolding.quantity = existingHolding.quantity - quantity
-                }
-            }
-
-            // 3. Save user and portfolio
-            await user.save({ session })
-            await portfolio.save({ session })
-
-            // 4. Log the trade
-            const trade = new tradeModel({
-                user: userId,
-                symbol,
-                type,
-                quantity,
-                price: livePrice,
-                total,
-                executedAt: new Date(),
-            })
-            await trade.save({ session })
-
-            // 5. Save a portfolio snapshot (total invested + current value)
+        // 6. Save portfolio snapshot (non-critical — does not trigger rollback if it fails)
+        try {
             const totalInvested = portfolio.holdings.reduce(
                 (sum, h) => sum + h.quantity * h.avgBuyPrice, 0
             )
             const totalValue = portfolio.holdings.reduce(
                 (sum, h) => sum + h.quantity * livePrice, 0
             )
-
-            const snapshot = new portfolioSnapshotModel({
-                user: userId,
-                totalValue,
-                totalInvested,
-                totalPnl: totalValue - totalInvested,
+            await portfolioSnapshotModel.create({
+                user:          userId,
+                totalValue:    +totalValue.toFixed(2),
+                totalInvested: +totalInvested.toFixed(2),
+                totalPnl:      +(totalValue - totalInvested).toFixed(2),
                 walletBalance: user.cash,
-                recordedAt: new Date(),
+                recordedAt:    new Date(),
             })
-            await snapshot.save({ session })
+        } catch (snapshotErr) {
+            console.error('[TradeService] Snapshot failed — non critical:', snapshotErr.message)
+        }
 
-            result = {
-                trade: {
-                    symbol,
-                    type,
-                    quantity,
-                    price: livePrice,
-                    total,
-                },
-                wallet: user.cash,
-                pnl: totalValue - totalInvested,
-            }
-        })
+        return {
+            trade:  { symbol, type, quantity, price: livePrice, total },
+            wallet: user.cash,
+        }
 
-        return result
-
-    } finally {
-        session.endSession()
+    } catch (err) {
+        // Rollback — restore cash and holdings to state before this trade
+        console.error('[TradeService] Error — rolling back:', err.message)
+        try {
+            user.cash          = originalCash
+            portfolio.holdings = originalHoldings
+            await user.save()
+            await portfolio.save()
+        } catch (rollbackErr) {
+            console.error('[TradeService] Rollback also failed:', rollbackErr.message)
+        }
+        throw err
     }
 }
