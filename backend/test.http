@@ -1,0 +1,86 @@
+###register
+POST http://localhost:3000/user-api/register
+Content-Type: application/json
+
+{
+    "username": "testtest",
+    "email": "1@gmail.com",
+    "password": "test123",
+    "mobile": 8786547991
+}
+
+
+
+###  2. LOGIN
+POST http://localhost:3000/user-api/login
+Content-Type: application/json
+
+{
+    "email":"var@gamil.com",
+    "password":"1234"
+}
+
+### 3. FETCH STOCK INFO
+GET http://localhost:3000/stock/AAPL
+
+### 4. BUY TRADE
+POST http://localhost:3000/trade-api/trade
+Content-Type: application/json
+
+{
+    "symbol": "AAPL",
+    "type": "BUY",
+    "quantity": 2
+}
+
+### 5. GET PORTFOLIO
+GET http://localhost:3000/portfolio-api/portfolio
+
+### 6. GET PORTFOLIO SUMMARY
+GET http://localhost:3000/portfolio-api/portfolio/summary
+
+### 7. GET PORTFOLIO HISTORY
+GET http://localhost:3000/portfolio-api/portfolio/history
+
+### 8. GET TRADE HISTORY
+GET http://localhost:3000/trade-api/trades
+
+### 9. SELL 1 AAPL
+POST http://localhost:3000/trade-api/trade
+Content-Type: application/json
+
+{
+    "symbol": "AAPL",
+    "type": "SELL",
+    "quantity": 1
+}
+
+### 10. SELL MORE THAN HELD — should return 400
+POST http://localhost:3000/trade-api/trade
+Content-Type: application/json
+
+{
+    "symbol": "AAPL",
+    "type": "SELL",
+    "quantity": 999
+}
+
+### 11. BUY INSUFFICIENT FUNDS — should return 400
+POST http://localhost:3000/trade-api/trade
+Content-Type: application/json
+
+{
+    "symbol": "AAPL",
+    "type": "BUY",
+    "quantity": 999999
+}
+
+### 12. INVALID TYPE — should return 400
+POST http://localhost:3000/trade-api/trade
+Content-Type: application/json
+
+{
+    "symbol": "AAPL",
+    "type": "HOLD",
+    "quantity": 1
+}
