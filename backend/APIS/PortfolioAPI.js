@@ -3,7 +3,7 @@ import { userModel } from '../models/usermodel.js'
 import { portfolioModel } from '../models/Portfolio.js'
 import { verifyToken } from '../middlewares/verifyToken.js'
 import { getPortfolioWithPnL } from '../services/PortfolioService.js'
-
+import {portfolioSnapshotModel} from '../models/PortfolioSnapshot.js'
 export const PortfolioApp = exp.Router()
 
 // GET /portfolio — holdings + live P&L
@@ -16,7 +16,7 @@ PortfolioApp.get('/portfolio', verifyToken, async (req, res) => {
 // GET /portfolio/history — snapshot history
 PortfolioApp.get('/portfolio/history', verifyToken, async (req, res) => {
     const user = await userModel.findOne({ email: req.user.email })
-    const { portfolioSnapshotModel } = await import('../models/PortfolioSnapshot.js')
+    
     const snapshots = await portfolioSnapshotModel
         .find({ user: user._id })
         .sort({ recordedAt: 1 })
