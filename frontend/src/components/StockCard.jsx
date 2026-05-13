@@ -1,59 +1,91 @@
-import { useContext } from "react";
-import { AppContext } from "../context/AppContext";
-import toast from "react-hot-toast";
+import { useState } from "react"
+import axios from "axios"
+import toast from "react-hot-toast"
+import { useAuth } from "../stores/authStore"
+import { useApp } from "../context/AppContext"
 
-function StockCard({stock}){
+function StockCard({ stock }) {
+  const [quantity, setQuantity] = useState(1)
+  const [loading, setLoading] = useState(false)
 
-const {buyStock,sellStock} = useContext(AppContext);
+  const updateWallet = useAuth((state) => state.updateWallet)
+  const { buyStock, sellStock } = useApp()
 
-return(
+  const executeTrade = async (type) => {
+    if (!quantity || quantity < 1) {
+      toast.error("Enter a valid quantity")
+      return
+    }
+    try {
+      setLoading(true)
+      const res = await axios.post(
+        "http://localhost:3000/trade-api/trade",
+        { symbol: stock.symbol, type, quantity: Number(quantity) },
+        { withCredentials: true }
+      )
+      const newWallet = res.data.payload.wallet
 
-<div className="bg-white shadow p-4 flex justify-between rounded">
+      // 1. Update wallet in Sidebar via authStore
+      if (updateWallet) updateWallet(newWallet)
 
-<div>
+      // 2. Update portfolio/trades in AppContext — this fixes Dashboard stats
+      if (type === "BUY") buyStock(stock)
+      else sellStock(stock)
 
-<h2 className="font-bold">{stock.name}</h2>
+      toast.success(
+        `${type === "BUY" ? "Bought" : "Sold"} ${quantity} ${stock.symbol} · Wallet: ₹${newWallet.toLocaleString("en-IN")}`
+      )
+    } catch (err) {
+      toast.error(err.response?.data?.payload || err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
 
-<p>₹{stock.price}</p>
+  return (
+    <div className="bg-white shadow p-4 rounded space-y-3">
+      <div>
+        <h2 className="font-bold text-lg">{stock.symbol}</h2>
+        {stock.companyName && (
+          <p className="text-gray-500 text-sm">{stock.companyName}</p>
+        )}
+        <p className="text-xl font-semibold mt-1">₹{stock.price}</p>
+        {stock.change && (
+          <p className={stock.change.toString().includes("-") ? "text-red-500 text-sm" : "text-green-500 text-sm"}>
+            {stock.change}
+          </p>
+        )}
+      </div>
 
-<p className={stock.change.includes("+")
-? "text-green-500"
-: "text-red-500"}>
+      <div className="flex items-center gap-2">
+        <label className="text-sm text-gray-600">Qty</label>
+        <input
+          type="number"
+          min="1"
+          value={quantity}
+          onChange={(e) => setQuantity(e.target.value)}
+          className="border rounded px-2 py-1 w-20 text-center text-sm"
+        />
+      </div>
 
-{stock.change}
-
-</p>
-
-</div>
-
-<div className="space-x-2">
-
-<button
-className="bg-green-500 text-white px-3 py-1 rounded"
-onClick={()=>{
-buyStock(stock);
-toast.success("Stock Bought");
-}}
->
-Buy
-</button>
-
-<button
-className="bg-red-500 text-white px-3 py-1 rounded"
-onClick={()=>{
-sellStock(stock);
-toast.success("Stock Sold");
-}}
->
-Sell
-</button>
-
-</div>
-
-</div>
-
-);
-
+      <div className="flex gap-2">
+        <button
+          disabled={loading}
+          onClick={() => executeTrade("BUY")}
+          className="bg-green-500 text-white px-4 py-1 rounded flex-1 hover:bg-green-600 disabled:opacity-50 text-sm font-semibold"
+        >
+          {loading ? "..." : "Buy"}
+        </button>
+        <button
+          disabled={loading}
+          onClick={() => executeTrade("SELL")}
+          className="bg-red-500 text-white px-4 py-1 rounded flex-1 hover:bg-red-600 disabled:opacity-50 text-sm font-semibold"
+        >
+          {loading ? "..." : "Sell"}
+        </button>
+      </div>
+    </div>
+  )
 }
 
-export default StockCard;
+export default StockCard

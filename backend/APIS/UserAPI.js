@@ -31,3 +31,7 @@ Userapp.post('/login',async(req,res)=>{
 })
 
 //write logout code
+Userapp.post('/logout', (req, res) => {
+    res.clearCookie('token')
+    res.status(200).json({ message: "logged out" })
+})

@@ -1,17 +1,17 @@
 import { useContext } from "react";
 import Sidebar from "../components/Sidebar";
 import StockCard from "../components/StockCard";
-import { AppContext } from "../context/AppContext";
+import { useApp } from "../context/AppContext";
 
 function Dashboard() {
 
-const {wallet,portfolioValue,totalProfit} = useContext(AppContext);
+const {wallet,portfolioValue,totalProfit} = useApp();
 
 const stocks = [
-{ name: "AAPL", price: 180, change: "+1.2%" },
-{ name: "TSLA", price: 250, change: "-0.8%" },
-{ name: "AMZN", price: 130, change: "+0.4%" },
-{ name: "MSFT", price: 320, change: "+0.6%" }
+{ symbol: "AAPL", price: 180, change: "+1.2%" },
+{ symbol: "TSLA", price: 250, change: "-0.8%" },
+{ symbol: "AMZN", price: 130, change: "+0.4%" },
+{ symbol: "MSFT", price: 320, change: "+0.6%" }
 ];
 
 return (

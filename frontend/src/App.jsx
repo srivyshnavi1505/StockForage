@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
 import Navbar from "./components/Navbar";
 
 import Landing from "./pages/Landing";
@@ -8,8 +9,12 @@ import Dashboard from "./pages/Dashboard";
 import Portfolio from "./pages/Portfolio";
 import Leaderboard from "./pages/Leaderboard";
 import TradeHistory from "./pages/TradeHistory";
+import { useAuth } from "./stores/authStore";
 
 function App() {
+  const { verifySession } = useAuth();
+  useEffect(() => { verifySession(); }, []);
+
   return (
     <BrowserRouter>
 

@@ -22,7 +22,7 @@ export async function executeTrade({ userId, symbol, type, quantity }) {
 
     // 1. Fetch live price
     const livePrice = await getLivePrice(symbol)
-    const total = +(livePrice * quantity).toFixed(2)
+    const total =+(livePrice * quantity).toFixed(2)
 
     // 2. Load user and portfolio
     const user = await userModel.findById(userId)
@@ -34,7 +34,10 @@ export async function executeTrade({ userId, symbol, type, quantity }) {
 
     let portfolio = await portfolioModel.findOne({ user: userId })
     if (!portfolio) {
-        portfolio = new portfolioModel({ user: userId, holdings: [] })
+        portfolio = new portfolioModel({
+            user: userId,
+            holdings: []
+        })
     }
 
     // 3. Save originals for rollback
@@ -68,6 +71,7 @@ export async function executeTrade({ userId, symbol, type, quantity }) {
                     quantity,
                     avgBuyPrice: livePrice,
                     boughtAt: new Date(),
+                    companyName: '', // Set to blank or fetch if available
                 })
             }
         }
@@ -101,6 +105,8 @@ export async function executeTrade({ userId, symbol, type, quantity }) {
         // 4. Save user and portfolio
         await user.save()
         await portfolio.save()
+        console.log("user saved")
+        console.log("portfolio saved")
 
         // 5. Log the trade
         await tradeModel.create({
@@ -110,9 +116,8 @@ export async function executeTrade({ userId, symbol, type, quantity }) {
             quantity,
             price: livePrice,
             total,
-            executedAt: new Date(),
         })
-
+        console.log("trade saved")
         // 6. Save portfolio snapshot (non-critical — does not trigger rollback if it fails)
         try {
             const totalInvested = portfolio.holdings.reduce(

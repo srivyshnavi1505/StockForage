@@ -1,77 +1,110 @@
-import axios from "axios"
-import { create } from "zustand"
+import axios from "axios";
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
-export const useAuth = create((set)=>({
+// Axios instance — base URL + credentials in one place
+const api = axios.create({
+  baseURL: "http://localhost:3000",
+  withCredentials: true, // sends httpOnly cookies automatically
+});
 
-    currentUser:null,
-    isAuthenticated:false,
-    loading:false,
-    error:null,
+// Auto-attach JWT from store to every request
+api.interceptors.request.use((config) => {
+  const token = useAuth.getState().token;
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
 
-    login:async(userCredObj)=>{
-
-        try{
-
-            set({loading:true,error:null})
-
-            let res = await axios.post(
-                "http://localhost:3000/user-api/login",
-                userCredObj,
-                {withCredentials:true}
-            )
-
-            console.log(res)
-
-            set({
-                loading:false,
-                isAuthenticated:true,
-                currentUser:res.data.payload
-            })
-
-        }catch(err){
-
-            console.log(err)
-
-            set({
-                loading:false,
-                isAuthenticated:false,
-                currentUser:null,
-                error:err
-            })
-
-        }
-
-    },
-
-    logout:async()=>{
-
-        try{
-
-            set({loading:true,error:null})
-
-            await axios.get(
-                "http://localhost:3000/user-api/logout",
-                {withCredentials:true}
-            )
-
-            set({
-                loading:false,
-                isAuthenticated:false,
-                currentUser:null,
-            })
-
-        }
-        catch(err){
-
-            set({
-                loading:false,
-                isAuthenticated:false,
-                currentUser:null,
-                error:err.response?.data?.error || "LOGOUT Failed"
-            })
-
-        }
-
+// Auto-logout on 401 (expired/invalid token)
+api.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    if (err.response?.status === 401) {
+      useAuth.getState().logout();
     }
+    return Promise.reject(err);
+  }
+);
 
-}))
+export { api }; // use this `api` instance everywhere instead of plain axios
+
+export const useAuth = create(
+  // persist saves to localStorage automatically — survives refresh
+  persist(
+    (set, get) => ({
+      currentUser: null,
+      token: null,
+      isAuthenticated: false,
+      loading: false,
+      error: null,
+
+      login: async (userCredObj) => {
+        try {
+          set({ loading: true, error: null });
+
+          const res = await api.post("/user-api/login", userCredObj);
+
+          // Expect backend to return { payload: userObj, token: "jwt..." }
+          const { payload, token } = res.data;
+
+          set({
+            loading: false,
+            isAuthenticated: true,
+            currentUser: payload,
+            token,
+            error: null,
+          });
+        } catch (err) {
+          set({
+            loading: false,
+            isAuthenticated: false,
+            currentUser: null,
+            token: null,
+            error: err.response?.data?.message || "Login failed",
+          });
+        }
+      },
+
+      logout: async () => {
+        try {
+          set({ loading: true, error: null });
+          await api.get("/user-api/logout");
+        } catch {
+          // Even if server logout fails, clear client state
+        } finally {
+          set({
+            loading: false,
+            isAuthenticated: false,
+            currentUser: null,
+            token: null,
+            error: null,
+          });
+        }
+      },
+
+      // Call this once on app boot to revalidate persisted token
+      verifySession: async () => {
+        const { token } = get();
+        if (!token) return;
+
+        try {
+          const res = await api.get("/user-api/verify");
+          set({ currentUser: res.data.payload, isAuthenticated: true });
+        } catch {
+          // Token expired — clear everything
+          get().logout();
+        }
+      },
+
+      clearError: () => set({ error: null }),
+    }),
+    {
+      name: "auth-storage",         // localStorage key
+      partialize: (state) => ({     // only persist these fields
+        token: state.token,
+        currentUser: state.currentUser,
+        isAuthenticated: state.isAuthenticated,
+      }),
+    }
+  )
+);
