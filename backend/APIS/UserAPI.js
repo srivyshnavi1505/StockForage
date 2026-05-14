@@ -67,3 +67,8 @@ Userapp.get("/users", async (req, res) => {
     res.status(500).json({ message: "Error fetching users", payload: err.message });
   }
 });
+//write logout code
+Userapp.post('/logout', (req, res) => {
+    res.clearCookie('token')
+    res.status(200).json({ message: "logged out" })
+})
