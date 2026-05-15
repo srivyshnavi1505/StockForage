@@ -1,18 +1,18 @@
-# 📈 StockForage — Live Stock Market Simulator
+# StockForage — Live Stock Market Simulator
 
 StockForage is a full-stack stock market simulator web application that allows users to practice stock trading using a virtual wallet. Users can buy and sell stocks, track profits/losses, monitor portfolios, and compete on the leaderboard.
 
 ---
 
-# 🚀 Features
+#  Features
 
-## 👤 Authentication
+##  Authentication
 - User Registration
 - User Login
 - Logout Functionality
 - Dynamic User Profile Sidebar
 
-## 💰 Trading Features
+##  Trading Features
 - Virtual Wallet
 - Buy Stocks
 - Sell Stocks
@@ -20,19 +20,19 @@ StockForage is a full-stack stock market simulator web application that allows u
 - Profit / Loss Calculation
 - Trade History Tracking
 
-## 📊 Dashboard
+## Dashboard
 - Wallet Balance
 - Portfolio Value
 - Total Profit
 - Stock Market Cards
 - Responsive UI
 
-## 🏆 Leaderboard
+##  Leaderboard
 - Dynamic Leaderboard
 - Profit-based Ranking
 - Database Connected Users
 
-## 🎨 UI Features
+## UI Features
 - Responsive Design
 - Fixed Sidebar
 - Toast Notifications
@@ -41,7 +41,7 @@ StockForage is a full-stack stock market simulator web application that allows u
 
 ---
 
-# 🛠️ Tech Stack
+#  Tech Stack
 
 ## Frontend
 - React.js
@@ -83,7 +83,7 @@ StockForage
 ```
 
 
-# 📌 API Endpoints
+#  API Endpoints
 
 ## Get Users
 
