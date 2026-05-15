@@ -82,85 +82,6 @@ StockForage
 │   └── vite.config.js
 ```
 
----
-
-# ⚙️ Installation
-
-## 1️⃣ Clone Repository
-
-```bash
-git clone https://github.com/your-username/StockForage.git
-```
-
----
-
-# 🔧 Backend Setup
-
-## Move to backend folder
-
-```bash
-cd backend
-```
-
-## Install dependencies
-
-```bash
-npm install
-```
-
-## Start backend server
-
-```bash
-npm run dev
-```
-
-Backend runs on:
-
-```bash
-http://localhost:3000
-```
-
----
-
-# 💻 Frontend Setup
-
-## Move to frontend folder
-
-```bash
-cd frontend
-```
-
-## Install dependencies
-
-```bash
-npm install
-```
-
-## Run frontend
-
-```bash
-npm run dev
-```
-
-Frontend runs on:
-
-```bash
-http://localhost:5173
-```
-
----
-
-# 🗄️ MongoDB Setup
-
-Make sure MongoDB is running locally.
-
-Connection used:
-
-```js
-mongodb://localhost:27017/stocks
-```
-
----
 
 # 📌 API Endpoints
 
@@ -175,16 +96,5 @@ GET /user-api/users
 ```http
 POST /user-api/user
 ```
-
-
-## Dashboard
-- Wallet Balance
-- Market Cards
-- Fixed Sidebar
-- Portfolio Tracking
-
-## Leaderboard
-- Dynamic User Rankings
-- Profit/Loss Display
 
 
