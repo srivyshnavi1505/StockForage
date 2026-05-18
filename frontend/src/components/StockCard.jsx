@@ -72,14 +72,14 @@ function StockCard({ stock }) {
         <button
           disabled={loading}
           onClick={() => executeTrade("BUY")}
-          className="bg-green-500 text-white px-4 py-1 rounded flex-1 hover:bg-green-600 disabled:opacity-50 text-sm font-semibold"
+          className="bg-green-200 text-blue-950 px-0.5 py-3 rounded-xl flex-1 hover:bg-green-600 disabled:opacity-10 text-sm font-semibold"
         >
           {loading ? "..." : "Buy"}
         </button>
         <button
           disabled={loading}
           onClick={() => executeTrade("SELL")}
-          className="bg-red-500 text-white px-4 py-1 rounded flex-1 hover:bg-red-600 disabled:opacity-50 text-sm font-semibold"
+          className="bg-red-400 text-blue-950 px-0.5 py-3 rounded-xl flex-1 hover:bg-red-600 disabled:opacity-50 text-sm font-semibold"
         >
           {loading ? "..." : "Sell"}
         </button>
