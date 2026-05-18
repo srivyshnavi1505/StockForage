@@ -25,7 +25,7 @@ useEffect(()=>{
 
 return(
 
-<div className="flex justify-center bg-[#F3F4F4] flex flex-col items-center  h-screen">
+<div className="flex justify-center bg-[#F3F4F4]  flex-col items-center  h-screen">
 
 <form
 onSubmit={handleSubmit(onUserLogin)}
