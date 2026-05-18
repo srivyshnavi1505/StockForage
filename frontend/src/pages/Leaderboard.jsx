@@ -1,63 +1,134 @@
-import { users } from "../data/users";
+import { useEffect, useState } from "react";
 
-function Leaderboard(){
+function Leaderboard() {
 
-const initialBalance = 100000;
+  const [users, setUsers] = useState([]);
 
-const leaderboard = users.map(user => {
+  useEffect(() => {
+  fetch("http://localhost:3000/user-api/users")
+    .then((res) => res.json())
+    .then((data) => {
+      const usersArray = Array.isArray(data.payload) ? data.payload : [];
 
-const profit = user.wallet + user.portfolioValue - initialBalance;
+      // Group by user and keep only the LATEST snapshot per user
+      const userMap = {};
+      usersArray.forEach((entry) => {
+        const userId = entry.userId || entry._id; // adjust key to match your data
+        const existing = userMap[userId];
 
-return {
-...user,
-profit
-};
+        // Keep the most recent snapshot (assumes createdAt or a timestamp field)
+        if (!existing || new Date(entry.createdAt) > new Date(existing.createdAt)) {
+          userMap[userId] = entry;
+        }
+      });
 
-}).sort((a,b)=>b.profit-a.profit);
+      // Convert map back to array and sort by profit
+      const uniqueUsers = Object.values(userMap);
+      uniqueUsers.sort((a, b) => (b.totalPnl || 0) - (a.totalPnl || 0));
 
-return(
+      setUsers(uniqueUsers);
+    })
+    .catch((err) => console.log(err));
+}, []);
 
-<div className="p-6">
+  return (
 
-<h2 className="text-2xl font-bold mb-4">
-Leaderboard
-</h2>
+    <div className="p-6 bg-gray-100 min-h-screen">
 
-<table className="w-full bg-white shadow rounded-lg">
+      <h2 className="text-3xl font-bold mb-6">
+        Trading Leaderboard
+      </h2>
 
-<thead className="bg-gray-200">
+      <div className="bg-white rounded-xl shadow overflow-hidden">
 
-<tr>
-<th className="p-3">Rank</th>
-<th>Name</th>
-<th>Profit</th>
-</tr>
+        <table className="w-full">
 
-</thead>
+          <thead className="bg-black text-white">
 
-<tbody>
+            <tr>
 
-{leaderboard.map((user,index)=>(
-<tr key={index} className="text-center border-b">
+              <th className="p-4 text-left">
+                Rank
+              </th>
 
-<td>{index+1}</td>
+              <th className="p-4 text-left">
+                Trader
+              </th>
 
-<td>{user.name}</td>
+              <th className="p-4 text-left">
+                Wallet
+              </th>
 
-<td className={user.profit>=0?"text-green-600":"text-red-600"}>
-${user.profit}
-</td>
+              <th className="p-4 text-left">
+                Portfolio
+              </th>
 
-</tr>
-))}
+              <th className="p-4 text-left">
+                Profit / Loss
+              </th>
 
-</tbody>
+            </tr>
 
-</table>
+          </thead>
 
-</div>
+          <tbody>
 
-);
+            {users.map((user, index) => (
+
+              <tr
+                key={user._id}
+                className="border-b hover:bg-gray-50"
+              >
+
+                <td className="p-4 font-semibold">
+
+                  {index === 0
+                    ? "🥇"
+                    : index === 1
+                    ? "🥈"
+                    : index === 2
+                    ? "🥉"
+                    : `#${index + 1}`}
+
+                </td>
+
+                <td className="p-4 font-medium">
+                  {user.username}
+                </td>
+
+                <td className="p-4">
+                  ${user.walletBalance || 0}
+                </td>
+
+                <td className="p-4">
+                  ${user.totalValue || 0}
+                </td>
+
+                <td
+                  className={`p-4 font-semibold ${
+                    (user.totalPnl || 0) >= 0
+                      ? "text-green-600"
+                      : "text-red-500"
+                  }`}
+                >
+
+                  ${user.totalPnl || 0}
+
+                </td>
+
+              </tr>
+
+            ))}
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+  );
 
 }
 

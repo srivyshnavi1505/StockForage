@@ -16,8 +16,8 @@ POST http://localhost:3000/user-api/login
 Content-Type: application/json
 
 {
-    "email":"var@gamil.com",
-    "password":"1234"
+    "email":"user1@gmail.com",
+    "password":"12345"
 }
 ###
 
@@ -25,3 +25,17 @@ GET  http://localhost:3000/user-api/logout
 
 ###
 GET  http://localhost:3000/stock/AAPL
+
+###
+POST http://localhost:3000/trade-api/trade
+Content-Type: application/json
+
+{
+    "symbol":"AMZN",
+    "type":"BUY",
+    "quantity":"1"
+}
+
+
+###
+GET http://localhost:3000/user-api/users

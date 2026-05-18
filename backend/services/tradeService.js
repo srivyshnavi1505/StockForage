@@ -116,6 +116,7 @@ export async function executeTrade({ userId, symbol, type, quantity }) {
             quantity,
             price: livePrice,
             total,
+            executedAt: new Date(),
         })
         console.log("trade saved")
         // 6. Save portfolio snapshot (non-critical — does not trigger rollback if it fails)
