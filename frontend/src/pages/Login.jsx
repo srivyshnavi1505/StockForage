@@ -25,39 +25,39 @@ useEffect(()=>{
 
 return(
 
-<div className="flex justify-center items-center h-screen">
+<div className="flex justify-center bg-[#F3F4F4] flex flex-col items-center  h-screen">
 
 <form
 onSubmit={handleSubmit(onUserLogin)}
-className="bg-white p-10 shadow w-80"
+className="bg-blue-950  rounded-lg px-10 py-20 shadow-lg w-80"
 >
 
-<h2 className="text-xl mb-5 text-center">Login</h2>
+<h2 className="text-zinc-200 text-4xl  mb-5 text-center">Login</h2>
 
 <input
 type="email"
 placeholder="Email"
-className="border p-2 mb-3 w-full"
+className="border-rose-100  rounded-lg p-2 mb-3 w-full"
 {...register("email", { required: true })}
 />
 
 <input
 type="password"
 placeholder="Password"
-className="border p-2 mb-3 w-full"
+className="border-rose-100  rounded-lg p-2 mb-3 w-full"
 {...register("password", { required: true })}
 />
 
 <button
 type="submit"
-className="bg-blue-500 text-white px-4 py-2 w-full"
+className="bg-[#F08D39] text-white rounded-xl px-4 py-2 max-w-full "
 >
 Login
 </button>
 
-<p className="text-center mt-4 text-sm">
+<p className="text-center text-red-50 mt-4 text-sm">
 Don't have an account?{" "}
-<Link to="/register" className="text-blue-500 underline">
+<Link to="/register" className="text-rose-200 underline">
 Register
 </Link>
 </p>
