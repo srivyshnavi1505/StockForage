@@ -36,16 +36,15 @@ async function fetchAndStoreSnapshot(symbol) {
     })
 }
 
-// Run every minute during market hours (Mon–Fri, 9:30am–4:00pm EST)
-// Cron format: second(optional) minute hour day month weekday
-// node-cron uses local server time — adjust if server is not in EST
+// Run every 5 minutes during market hours (Mon–Fri, 9am–4pm)
+// Reduced from every minute to avoid hitting Finnhub rate limit (60 req/min free plan)
 export function startStockSnapshotCron() {
-    cron.schedule('* 9-15 * * 1-5', async () => {
+    cron.schedule('*/5 9-15 * * 1-5', async () => {
         try {
             const symbols = await getTrackedSymbols()
             if (symbols.length === 0) return
 
-            // Stagger requests to avoid hitting Finnhub rate limit (60 req/min on free plan)
+            // Stagger requests — 2 seconds apart to stay under rate limit
             for (let i = 0; i < symbols.length; i++) {
                 setTimeout(async () => {
                     try {
@@ -53,12 +52,12 @@ export function startStockSnapshotCron() {
                     } catch (err) {
                         console.error(`[StockSnapshot] Failed for ${symbols[i]}:`, err.message)
                     }
-                }, i * 1000) // 1 second apart
+                }, i * 2000)
             }
         } catch (err) {
             console.error('[StockSnapshot] Cron error:', err.message)
         }
     })
 
-    console.log('[StockSnapshot] Cron started — snapshots every minute on weekdays 9am–4pm')
+    console.log('[StockSnapshot] Cron started — snapshots every 5 min on weekdays 9am–4pm')
 }

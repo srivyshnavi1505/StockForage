@@ -71,8 +71,8 @@ FetchStockInfo.get('/symbols', async (req, res) => {
     }
 })
 
-// GET /stock/history/:symbol — historical OHLC data (cached 5 min)
-// Primary: Finnhub candles API (real multi-day history)
+// GET /stock/history/:symbol — historical OHLC data (cached 10 min)
+// Primary: Yahoo Finance chart API (free, no API key needed)
 // Fallback: local StockSnapshot DB (aggregated by day)
 FetchStockInfo.get('/history/:symbol', async (req, res) => {
     try {
@@ -83,40 +83,46 @@ FetchStockInfo.get('/history/:symbol', async (req, res) => {
         const cached = getCache(cacheKey)
         if (cached) return res.status(200).json({ payload: cached })
 
-        const APIkey = process.env.FINN_APIKEY
-        const now = Math.floor(Date.now() / 1000)
-        const from = now - (days * 24 * 60 * 60)
+        // Map days to Yahoo Finance range parameter
+        const rangeMap = { 7: '5d', 30: '1mo', 90: '3mo' }
+        const range = rangeMap[days] || '1mo'
 
-        // Primary: Finnhub stock candles API — gives proper multi-day OHLC
+        // Primary: Yahoo Finance chart API — free, no API key
         try {
-            const candles = await axios.get('https://finnhub.io/api/v1/stock/candle', {
-                params: { symbol: sym, resolution: 'D', from, to: now, token: APIkey }
-            })
+            const yahoo = await axios.get(
+                `https://query1.finance.yahoo.com/v8/finance/chart/${sym}`, {
+                    params: { range, interval: '1d' },
+                    headers: { 'User-Agent': 'Mozilla/5.0' }
+                }
+            )
 
-            if (candles.data.s === 'ok' && candles.data.t && candles.data.t.length > 1) {
-                const data = candles.data.t.map((timestamp, i) => ({
-                    date: new Date(timestamp * 1000),
-                    open: candles.data.o[i],
-                    high: candles.data.h[i],
-                    low: candles.data.l[i],
-                    close: candles.data.c[i]
-                }))
-                setCache(cacheKey, data, 5 * 60 * 1000)
+            const result = yahoo.data?.chart?.result?.[0]
+            if (result && result.timestamp && result.timestamp.length > 1) {
+                const quotes = result.indicators?.quote?.[0]
+                const data = result.timestamp.map((ts, i) => ({
+                    date: new Date(ts * 1000),
+                    open: quotes.open[i],
+                    high: quotes.high[i],
+                    low: quotes.low[i],
+                    close: quotes.close[i]
+                })).filter(d => d.close !== null) // filter out null entries
+
+                setCache(cacheKey, data, 10 * 60 * 1000) // cache 10 min
                 return res.status(200).json({ payload: data })
             }
-        } catch (candleErr) {
-            console.error(`[History] Finnhub candles failed for ${sym}:`, candleErr.message)
+        } catch (yahooErr) {
+            console.error(`[History] Yahoo Finance failed for ${sym}:`, yahooErr.message)
         }
 
         // Fallback: local StockSnapshot DB, aggregated by date
-        const since = new Date(now * 1000 - days * 24 * 60 * 60 * 1000)
+        const since = new Date()
+        since.setDate(since.getDate() - days)
         const snapshots = await stockSnapshotModel
             .find({ symbol: sym, recordedAt: { $gte: since } })
             .sort({ recordedAt: 1 })
             .lean()
 
         if (snapshots.length > 0) {
-            // Aggregate by day — take first open, max high, min low, last close
             const byDay = {}
             for (const s of snapshots) {
                 const dayKey = new Date(s.recordedAt).toISOString().slice(0, 10)
@@ -125,15 +131,14 @@ FetchStockInfo.get('/history/:symbol', async (req, res) => {
                 } else {
                     byDay[dayKey].high = Math.max(byDay[dayKey].high, s.high)
                     byDay[dayKey].low = Math.min(byDay[dayKey].low, s.low)
-                    byDay[dayKey].close = s.close // last entry of the day
+                    byDay[dayKey].close = s.close
                 }
             }
             const data = Object.values(byDay)
-            setCache(cacheKey, data, 5 * 60 * 1000)
+            setCache(cacheKey, data, 10 * 60 * 1000)
             return res.status(200).json({ payload: data })
         }
 
-        // No data from either source
         setCache(cacheKey, [], 2 * 60 * 1000)
         res.status(200).json({ payload: [] })
     } catch (err) {
