@@ -65,10 +65,11 @@ StockForage is a full-stack stock market simulator that lets users practice stoc
 ### Backend
 - **Node.js** + **Express 5**
 - **MongoDB** + **Mongoose** — database & ODM
-- **Finnhub API** — live stock quotes, company profiles, historical candles
+- **Finnhub API** — live stock quotes & company symbols (free tier)
+- **Yahoo Finance API** — historical OHLC chart data (free, no API key)
 - **JWT** + **bcryptjs** — authentication
-- **node-cron** — scheduled stock & portfolio snapshots
-- **In-memory cache** — rate limit friendly caching layer
+- **node-cron** — stock & portfolio snapshots every 5 minutes
+- **In-memory cache** — rate limit friendly caching layer (quotes 15s, symbols 5min, history 10min)
 
 ---
 
@@ -147,7 +148,7 @@ StockForage/
 |--------|----------|-------------|
 | GET | `/symbols` | Top 1,000 US stock symbols (cached 5min) |
 | POST | `/batch` | Batch quotes for multiple symbols |
-| GET | `/history/:symbol?days=30` | Historical OHLC data |
+| GET | `/history/:symbol?days=30` | Historical OHLC data via Yahoo Finance |
 | GET | `/:symbol` | Single stock quote (cached 15s) |
 
 ### Trade API (`/trade-api`)
