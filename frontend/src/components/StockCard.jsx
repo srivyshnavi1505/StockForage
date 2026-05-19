@@ -55,6 +55,14 @@ function StockCard({ stock }) {
             {stock.change}
           </p>
         )}
+        {/* OHLC row */}
+        {(stock.open || stock.high || stock.low) && (
+          <div className="flex gap-3 mt-2 text-xs text-gray-500">
+            <span>O: <span className="font-medium text-gray-700">{stock.open}</span></span>
+            <span>H: <span className="font-medium text-green-600">{stock.high}</span></span>
+            <span>L: <span className="font-medium text-red-500">{stock.low}</span></span>
+          </div>
+        )}
       </div>
 
       <div className="flex items-center gap-2">
