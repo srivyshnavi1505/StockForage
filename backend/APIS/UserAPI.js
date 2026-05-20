@@ -7,23 +7,31 @@ import { portfolioSnapshotModel } from '../models/PortfolioSnapshot.js'
 export const Userapp = exp.Router()
 
 
-Userapp.post('/register',async(req,res)=>{
-    let newuser=req.body
-    let userdoc= await register({...newuser})
-    res.status(201).json({message:"user created",payload:newuser})
+Userapp.post('/register', async (req, res, next) => {
+    try {
+        let newuser = req.body
+        let userdoc = await register({...newuser})
+        res.status(201).json({message: "user created", payload: newuser})
+    } catch (err) {
+        next(err)
+    }
 })
 
 
-Userapp.post('/login',async(req,res)=>{
-    const {email,password}= req.body
-    const {token,user}=await authenticate({email,password})
+Userapp.post('/login', async (req, res, next) => {
+    try {
+        const {email, password} = req.body
+        const {token, user} = await authenticate({email, password})
 
-    res.cookie('token',token,{
-        httpOnly:true,
-        sameSite:"lax",
-        secure:false
-    })
-    res.status(200).json({message:"login succes", payload:user})
+        res.cookie('token', token, {
+            httpOnly: true,
+            sameSite: "lax",
+            secure: false
+        })
+        res.status(200).json({message: "login succes", payload: user})
+    } catch (err) {
+        next(err)
+    }
 })
 
 Userapp.get("/users", async (req, res) => {

@@ -11,7 +11,7 @@ export const FetchStockInfo=exp.Router()
 FetchStockInfo.get('/:symbol',async(req,res)=>{
     const sym=req.params.symbol.toUpperCase()
     const APIkey=process.env.FINN_APIKEY
-     const [quote, profile] = await Promise.all([
+    const [quote, profile] = await Promise.all([
     axios.get(`https://finnhub.io/api/v1/quote`,{
         params:{
             symbol:sym,

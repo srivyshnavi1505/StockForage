@@ -1,51 +1,52 @@
 import axios from 'axios'
 import { config } from 'dotenv'
 import { portfolioModel } from '../models/Portfolio.js'
+import { userModel } from '../models/usermodel.js'
 config()
-
-async function getLivePrice(symbol) {
-    try {
-        const { data } = await axios.get('https://finnhub.io/api/v1/quote', {
-            params: { symbol, token: process.env.FINN_APIKEY }
-        })
-        return data.c || 0  //data.c is finnhub's fieldname for the current/close price
-    } catch {
-        return 0
-    }
-}
 
 export async function getPortfolioWithPnL(userId) {
 
+    const user = await userModel.findById(userId).lean()
     const portfolio = await portfolioModel.findOne({ user: userId }).lean()
-    //.lean() => the actual use of lean here is by default mongoose return heavy doc obj with lots of internal methods in it , so lean strips it all and gives plain js obj 
-    //in portfolio, the data is  only  read , we are not saving anything  
+    
+    const initialCash = 1000000 // default starting cash
+    const userCash = user ? user.cash : initialCash
+
     // User has no portfolio yet
     if (!portfolio || portfolio.holdings.length === 0) {
-        //2 cases : 1.the user has nveer made a trade so no portfolio exists yet, so we return 0 
-        //2.user exists but sold everything , so we return 0 
+        const totalPnl = userCash - initialCash
         return {
             holdings: [],
             summary: {
                 totalInvested: 0,
                 totalValue:    0,
-                totalPnl:      0,
+                totalPnl:      +totalPnl.toFixed(2),
                 totalPnlPct:   0,
             }
         }
     }
 
-    // Fetch all live prices in parallel - very imp 
-    const livePrices = await Promise.all(
-        portfolio.holdings.map(h => getLivePrice(h.symbol))
-    )
-    //promise.all() => the flow will be parallel without wait [all the req fire at the same time =>wait for all =>done] 
-    // Build enriched holdings array
-    const holdings = portfolio.holdings.map((h, i) => {
-        const livePrice    = livePrices[i]
-        const invested     = h.quantity * h.avgBuyPrice //how much money you spent buying these shares
-        const currentValue = h.quantity * livePrice //what those same shares are worth right now
-        const pnl          = currentValue - invested //profit if positive, loss if negative
-        const pnlPct       = invested > 0 ? (pnl / invested) * 100 : 0
+    const finnhubKey = process.env.FINN_APIKEY;
+
+    // Build enriched holdings array fetching live prices
+    const holdings = await Promise.all(portfolio.holdings.map(async (h) => {
+        let livePrice = h.avgBuyPrice; 
+        
+        try {
+            const quote = await axios.get(`https://finnhub.io/api/v1/quote`, {
+                params: { symbol: h.symbol, token: finnhubKey }
+            });
+            if (quote.data && quote.data.c) {
+                livePrice = quote.data.c;
+            }
+        } catch (err) {
+            console.error(`Failed to fetch live price for ${h.symbol}:`, err.message);
+        }
+
+        const invested     = h.quantity * h.avgBuyPrice;
+        const currentValue = h.quantity * livePrice;
+        const pnl          = currentValue - invested;
+        const pnlPct       = invested > 0 ? (pnl / invested) * 100 : 0;
 
         return {
             symbol:       h.symbol,
@@ -58,13 +59,14 @@ export async function getPortfolioWithPnL(userId) {
             pnl:          +pnl.toFixed(2),
             pnlPct:       +pnlPct.toFixed(2),
         }
-    })
+    }));
 
     // Aggregate into summary
-    const totalInvested = holdings.reduce((sum, h) => sum + h.invested, 0)  //total investments 
-    const totalValue    = holdings.reduce((sum, h) => sum + h.currentValue, 0) //the total value with current holdings
-    const totalPnl      = totalValue - totalInvested  //total profit / total loss
-    const totalPnlPct   = totalInvested > 0 ? (totalPnl / totalInvested) * 100 : 0
+    const totalInvested = holdings.reduce((sum, h) => sum + h.invested, 0)
+    const totalValue    = holdings.reduce((sum, h) => sum + h.currentValue, 0)
+    // Total PnL is realized profit + unrealized profit
+    const totalPnl      = (userCash + totalValue) - initialCash
+    const totalPnlPct   = (totalPnl / initialCash) * 100
 
     return {
         holdings,
@@ -76,5 +78,3 @@ export async function getPortfolioWithPnL(userId) {
         }
     }
 }
-
-

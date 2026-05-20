@@ -1,11 +1,37 @@
-import { useContext } from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
 import Sidebar from "../components/Sidebar";
 import StockCard from "../components/StockCard";
-import { useApp } from "../context/AppContext";
 
 function Dashboard() {
 
-const {wallet,portfolioValue,totalProfit} = useApp();
+const [dashboardData, setDashboardData] = useState({
+  walletBalance: 0,
+  portfolioValue: 0,
+  totalProfit: 0
+});
+
+useEffect(() => {
+  const fetchDashboardData = async () => {
+    try {
+      const res = await axios.get("http://localhost:3000/portfolio-api/portfolio", {
+        withCredentials: true
+      });
+      if (res.data.payload) {
+        setDashboardData({
+          walletBalance: res.data.payload.walletBalance || 0,
+          portfolioValue: res.data.payload.summary?.totalValue || 0,
+          totalProfit: res.data.payload.summary?.totalPnl || 0
+        });
+      }
+    } catch (err) {
+      console.error("Failed to fetch dashboard data:", err);
+    }
+  };
+  fetchDashboardData();
+}, []);
+
+const { walletBalance, portfolioValue, totalProfit } = dashboardData;
 
 const stocks = [
 { symbol: "AAPL", price: 180, change: "+1.2%" },
@@ -30,18 +56,18 @@ return (
 
 <div className="bg-white shadow p-6 rounded-lg">
 <h3 className="text-gray-500">Wallet Balance</h3>
-<p className="text-2xl font-bold">${wallet}</p>
+<p className="text-2xl font-bold">₹{walletBalance.toFixed(2)}</p>
 </div>
 
 <div className="bg-white shadow p-6 rounded-lg">
 <h3 className="text-gray-500">Portfolio Value</h3>
-<p className="text-2xl font-bold">${portfolioValue}</p>
+<p className="text-2xl font-bold">₹{portfolioValue.toFixed(2)}</p>
 </div>
 
 <div className="bg-white shadow p-6 rounded-lg">
 <h3 className="text-gray-500">Total Profit</h3>
 <p className={`text-2xl font-bold ${totalProfit >= 0 ? "text-green-500" : "text-red-500"}`}>
-${totalProfit}
+₹{totalProfit.toFixed(2)}
 </p>
 </div>
 

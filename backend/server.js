@@ -35,9 +35,7 @@ function ErrorHandler(err,req,res,next){
 }
 
 //middlewares
-app.use(cors({origin:['http://localhost:5173']}))
-app.use(cookieParser())
-app.use(exp.json()) //body parsing middleware
+
 app.use('/user-api',Userapp) //middlewares for routes
 app.use('/stock',FetchStockInfo)
 app.use('/trade-api', TradeApp)

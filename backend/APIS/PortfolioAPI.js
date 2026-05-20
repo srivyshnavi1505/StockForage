@@ -10,6 +10,7 @@ export const PortfolioApp = exp.Router()
 PortfolioApp.get('/portfolio', verifyToken, async (req, res) => {
     const user = await userModel.findOne({ email: req.user.email })
     const data = await getPortfolioWithPnL(user._id)
+    data.walletBalance = user.cash
     res.status(200).json({ message: "portfolio fetched", payload: data })
 })
 
