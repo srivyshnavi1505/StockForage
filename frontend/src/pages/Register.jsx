@@ -14,6 +14,7 @@ function Register() {
   const navigate = useNavigate();
 
   const onUserRegister = async (newUser) => {
+
     setLoading(true);
     setError(null);
 
@@ -44,68 +45,81 @@ function Register() {
 
   return (
 
-    <div className="flex justify-center items-center h-screen">
+    <div className="flex justify-center bg-[#F3F4F4] flex-col items-center h-screen">
 
       <form
-        className="bg-white p-10 shadow w-80"
         onSubmit={handleSubmit(onUserRegister)}
+        className="bg-blue-950 rounded-lg px-10 py-10 shadow-lg w-96"
       >
 
-        <h2 className="text-xl mb-5 text-center">Register</h2>
+        <h2 className="text-zinc-200 text-4xl mb-5 text-center">
+          Register
+        </h2>
 
         {error && (
-          <p className="text-red-500 text-center mb-3">{error}</p>
+          <p className="text-red-400 text-center mb-3">
+            {error}
+          </p>
         )}
 
         <input
           placeholder="Name"
-          className="border p-2 mb-3 w-full"
+          className="rounded-lg p-2 mb-3 w-full"
           {...register("username", { required: true })}
         />
         {errors.username && (
-          <p className="text-red-500 text-sm">Name is required</p>
+          <p className="text-red-300 text-sm mb-2">
+            Name is required
+          </p>
         )}
 
         <input
           type="email"
           placeholder="Email"
-          className="border p-2 mb-3 w-full"
+          className="rounded-lg p-2 mb-3 w-full"
           {...register("email", { required: true })}
         />
         {errors.email && (
-          <p className="text-red-500 text-sm">Email is required</p>
+          <p className="text-red-300 text-sm mb-2">
+            Email is required
+          </p>
         )}
 
         <input
           type="password"
           placeholder="Password"
-          className="border p-2 mb-3 w-full"
+          className="rounded-lg p-2 mb-3 w-full"
           {...register("password", { required: true })}
         />
         {errors.password && (
-          <p className="text-red-500 text-sm">Password is required</p>
+          <p className="text-red-300 text-sm mb-2">
+            Password is required
+          </p>
         )}
 
         <input
           type="tel"
           placeholder="Mobile Number"
-          className="border p-2 mb-3 w-full"
+          className="rounded-lg p-2 mb-4 w-full"
           {...register("mobile", { required: true })}
         />
         {errors.mobile && (
-          <p className="text-red-500 text-sm">Mobile number is required</p>
+          <p className="text-red-300 text-sm mb-2">
+            Mobile number is required
+          </p>
         )}
 
         <button
-          className="bg-green-500 text-white px-4 py-2 w-full"
+          type="submit"
           disabled={loading}
+          className="bg-[#F08D39] text-white rounded-xl px-4 py-2 w-full"
         >
           {loading ? "Registering..." : "Register"}
         </button>
 
-        <p className="text-center mt-4 text-sm">
+        <p className="text-center text-red-50 mt-4 text-sm">
           Already have an account?{" "}
-          <Link to="/login" className="text-blue-500 underline">
+          <Link to="/login" className="text-rose-200 underline">
             Login
           </Link>
         </p>

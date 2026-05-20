@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import axios from "axios"
+import PortfolioHistoryChart from "../components/PortfolioHistoryChart"
 
 function Portfolio() {
   const [portfolioData, setPortfolioData] = useState({
@@ -85,6 +86,13 @@ function Portfolio() {
               {summary.totalPnlPct.toFixed(2)}%
             </p>
           </div>
+        </div>
+      )}
+
+      {/* Portfolio History Chart */}
+      {!loading && !error && (
+        <div className="mb-6">
+          <PortfolioHistoryChart />
         </div>
       )}
 
