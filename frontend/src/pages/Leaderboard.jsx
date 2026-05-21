@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { api } from "../stores/authStore";
 
 function Leaderboard() {
 
@@ -6,9 +7,9 @@ function Leaderboard() {
 
   useEffect(() => {
 
-    fetch("http://localhost:3000/user-api/users")
-      .then((res) => res.json())
-      .then((data) => {
+    api.get("/user-api/users")
+      .then((res) => {
+        const data = res.data;
 
         const usersArray = Array.isArray(data.payload)
           ? data.payload

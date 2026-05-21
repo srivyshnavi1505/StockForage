@@ -1,15 +1,34 @@
-import { useState } from "react"
-import axios from "axios"
+import { useState, useMemo } from "react"
 import toast from "react-hot-toast"
-import { useAuth } from "../stores/authStore"
+import { useAuth, api } from "../stores/authStore"
 import { useApp } from "../context/AppContext"
+import { ResponsiveContainer, LineChart, Line } from "recharts"
 
-function StockCard({ stock }) {
+function StockCard({ stock, onClick }) {
   const [quantity, setQuantity] = useState(1)
   const [loading, setLoading] = useState(false)
 
   const updateWallet = useAuth((state) => state.updateWallet)
+  const watchlist = useAuth((state) => state.watchlist) || []
+  const toggleWatchlist = useAuth((state) => state.toggleWatchlist)
+  
+  const isWatched = watchlist.includes(stock.symbol)
   const { buyStock, sellStock } = useApp()
+
+  const isUp = stock.change && !stock.change.toString().includes("-")
+  
+  // Simulate a 7-point sparkline based on current price and daily trend
+  const sparklineData = useMemo(() => {
+    const base = Number(stock.price) || 100
+    const changePct = stock.change ? parseFloat(stock.change) : 0
+    let current = base - (base * (changePct / 100))
+    const step = (base - current) / 6
+    
+    return Array.from({ length: 7 }).map((_, i) => {
+      const val = current + (step * i) + (Math.random() * (base * 0.005) * (Math.random() > 0.5 ? 1 : -1))
+      return { val }
+    })
+  }, [stock.price, stock.change])
 
   const executeTrade = async (type) => {
     if (!quantity || quantity < 1) {
@@ -18,17 +37,16 @@ function StockCard({ stock }) {
     }
     try {
       setLoading(true)
-      const res = await axios.post(
-        "http://localhost:3000/trade-api/trade",
-        { symbol: stock.symbol, type, quantity: Number(quantity) },
-        { withCredentials: true }
+      const res = await api.post(
+        "/trade-api/trade",
+        { symbol: stock.symbol, type, quantity: Number(quantity) }
       )
       const newWallet = res.data.payload.wallet
 
       // 1. Update wallet in Sidebar via authStore
       if (updateWallet) updateWallet(newWallet)
 
-      // 2. Update portfolio/trades in AppContext — this fixes Dashboard stats
+      // 2. Update portfolio/trades in AppContext
       if (type === "BUY") buyStock(stock)
       else sellStock(stock)
 
@@ -43,54 +61,92 @@ function StockCard({ stock }) {
   }
 
   return (
-    <div className="bg-white shadow p-4 rounded space-y-3">
+    <div 
+      onClick={() => onClick && onClick(stock)}
+      className="bg-white/10 backdrop-blur-xl border border-white/10 p-5 rounded-3xl shadow-xl transition-all duration-300 hover:bg-white/15 hover:-translate-y-1 hover:shadow-2xl flex flex-col justify-between cursor-pointer"
+    >
       <div>
-        <h2 className="font-bold text-lg">{stock.symbol}</h2>
-        {stock.companyName && (
-          <p className="text-gray-500 text-sm">{stock.companyName}</p>
-        )}
-        <p className="text-xl font-semibold mt-1">₹{stock.price}</p>
-        {stock.change && (
-          <p className={stock.change.toString().includes("-") ? "text-red-500 text-sm" : "text-green-500 text-sm"}>
-            {stock.change}
-          </p>
-        )}
+        <div className="flex justify-between items-start mb-2">
+          <div>
+            <h2 className="font-bold text-xl text-white tracking-wide">{stock.symbol}</h2>
+            {stock.companyName && (
+              <p className="text-gray-400 text-xs truncate max-w-[120px]">{stock.companyName}</p>
+            )}
+          </div>
+          <button 
+            onClick={(e) => { e.stopPropagation(); toggleWatchlist(stock.symbol); }}
+            className="text-2xl hover:scale-110 transition-transform focus:outline-none"
+            title="Toggle Watchlist"
+          >
+            {isWatched ? "⭐" : "☆"}
+          </button>
+        </div>
+
+        <div className="flex justify-between items-end mb-2">
+          <div>
+            <p className="text-2xl font-bold text-white mt-1">₹{stock.price}</p>
+            {stock.change && (
+              <p className={`font-semibold text-sm ${isUp ? "text-green-400" : "text-red-400"}`}>
+                {isUp ? "▲" : "▼"} {stock.change}
+              </p>
+            )}
+          </div>
+          
+          <div className="w-20 h-10">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={sparklineData}>
+                <Line 
+                  type="monotone" 
+                  dataKey="val" 
+                  stroke={isUp ? "#22c55e" : "#ef4444"} 
+                  strokeWidth={2} 
+                  dot={false}
+                  isAnimationActive={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
         {/* OHLC row */}
         {(stock.open || stock.high || stock.low) && (
-          <div className="flex gap-3 mt-2 text-xs text-gray-500">
-            <span>O: <span className="font-medium text-gray-700">{stock.open}</span></span>
-            <span>H: <span className="font-medium text-green-600">{stock.high}</span></span>
-            <span>L: <span className="font-medium text-red-500">{stock.low}</span></span>
+          <div className="flex gap-4 mt-3 mb-4 text-[10px] text-gray-400 font-mono bg-black/20 p-2 rounded-xl">
+            <span className="flex flex-col"><span>OPN</span><span className="text-gray-200">{stock.open}</span></span>
+            <span className="flex flex-col"><span>HGH</span><span className="text-green-400">{stock.high}</span></span>
+            <span className="flex flex-col"><span>LOW</span><span className="text-red-400">{stock.low}</span></span>
           </div>
         )}
       </div>
 
-      <div className="flex items-center gap-2">
-        <label className="text-sm text-gray-600">Qty</label>
-        <input
-          type="number"
-          min="1"
-          value={quantity}
-          onChange={(e) => setQuantity(e.target.value)}
-          className="border rounded px-2 py-1 w-20 text-center text-sm"
-        />
-      </div>
+      <div className="space-y-3 mt-auto">
+        <div className="flex items-center gap-3 bg-black/20 p-1.5 rounded-2xl">
+          <label className="text-xs text-gray-400 ml-2 font-semibold tracking-wider">QTY</label>
+          <input
+            type="number"
+            min="1"
+            value={quantity}
+            onClick={(e) => e.stopPropagation()}
+            onChange={(e) => setQuantity(e.target.value)}
+            className="bg-transparent text-white font-mono font-bold px-2 py-1 w-full text-center outline-none"
+          />
+        </div>
 
-      <div className="flex gap-2">
-        <button
-          disabled={loading}
-          onClick={() => executeTrade("BUY")}
-          className="bg-green-500 text-white px-4 py-1 rounded flex-1 hover:bg-green-600 disabled:opacity-50 text-sm font-semibold"
-        >
-          {loading ? "..." : "Buy"}
-        </button>
-        <button
-          disabled={loading}
-          onClick={() => executeTrade("SELL")}
-          className="bg-red-500 text-white px-4 py-1 rounded flex-1 hover:bg-red-600 disabled:opacity-50 text-sm font-semibold"
-        >
-          {loading ? "..." : "Sell"}
-        </button>
+        <div className="flex gap-3">
+          <button
+            disabled={loading}
+            onClick={(e) => { e.stopPropagation(); executeTrade("BUY"); }}
+            className="bg-green-500/20 text-green-400 border border-green-500/30 px-4 py-2 rounded-xl flex-1 hover:bg-green-500 hover:text-white transition-colors disabled:opacity-50 text-sm font-bold tracking-wider"
+          >
+            BUY
+          </button>
+          <button
+            disabled={loading}
+            onClick={(e) => { e.stopPropagation(); executeTrade("SELL"); }}
+            className="bg-red-500/20 text-red-400 border border-red-500/30 px-4 py-2 rounded-xl flex-1 hover:bg-red-500 hover:text-white transition-colors disabled:opacity-50 text-sm font-bold tracking-wider"
+          >
+            SELL
+          </button>
+        </div>
       </div>
     </div>
   )

@@ -36,7 +36,7 @@ export const authenticate=async({email,password})=>{
         },
         process.env.JWT_SECRET,
         {
-            expiresIn:"1h",
+            expiresIn:"7d",
         }
     )
 

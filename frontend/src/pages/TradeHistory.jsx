@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import axios from "axios"
+import { api } from "../stores/authStore"
 
 function TradeHistory() {
 
@@ -26,11 +26,10 @@ function TradeHistory() {
         params.type = type
       }
 
-      const res = await axios.get(
-        "http://localhost:3000/trade-api/trades",
+      const res = await api.get(
+        "/trade-api/trades",
         {
-          params,
-          withCredentials: true,
+          params
         }
       )
 

@@ -75,6 +75,36 @@ Userapp.get("/users", async (req, res) => {
     res.status(500).json({ message: "Error fetching users", payload: err.message });
   }
 });
+Userapp.get("/watchlist", verifyToken, async (req, res, next) => {
+    try {
+        const user = await userModel.findOne({ email: req.user.email })
+        res.status(200).json({ payload: user.watchlist || [] })
+    } catch (err) {
+        next(err)
+    }
+})
+
+Userapp.post("/watchlist", verifyToken, async (req, res, next) => {
+    try {
+        const { symbol } = req.body;
+        if (!symbol) return res.status(400).json({ message: "Symbol required" });
+
+        const user = await userModel.findOne({ email: req.user.email })
+        const watchlist = user.watchlist || [];
+        
+        if (watchlist.includes(symbol)) {
+            user.watchlist = watchlist.filter(s => s !== symbol);
+        } else {
+            user.watchlist.push(symbol);
+        }
+        
+        await user.save();
+        res.status(200).json({ message: "Watchlist updated", payload: user.watchlist })
+    } catch (err) {
+        next(err)
+    }
+})
+
 //write logout code
 Userapp.post('/logout', (req, res) => {
     res.clearCookie('token')

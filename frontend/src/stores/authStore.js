@@ -21,6 +21,7 @@ api.interceptors.response.use(
   (err) => {
     if (err.response?.status === 401) {
       useAuth.getState().logout();
+      window.location.href = "/login";
     }
     return Promise.reject(err);
   }
@@ -54,6 +55,7 @@ export const useAuth = create(
             token,
             error: null,
           });
+          get().fetchWatchlist();
         } catch (err) {
           set({
             loading: false,
@@ -90,9 +92,28 @@ export const useAuth = create(
         try {
           const res = await api.get("/user-api/verify");
           set({ currentUser: res.data.payload, isAuthenticated: true });
+          get().fetchWatchlist();
         } catch {
           // Token expired — clear everything
           get().logout();
+        }
+      },
+
+      watchlist: [],
+      fetchWatchlist: async () => {
+        try {
+          const res = await api.get("/user-api/watchlist");
+          set({ watchlist: res.data.payload || [] });
+        } catch (err) {
+          console.error("Failed to fetch watchlist", err);
+        }
+      },
+      toggleWatchlist: async (symbol) => {
+        try {
+          const res = await api.post("/user-api/watchlist", { symbol });
+          set({ watchlist: res.data.payload || [] });
+        } catch (err) {
+          console.error("Failed to toggle watchlist", err);
         }
       },
 

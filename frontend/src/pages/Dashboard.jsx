@@ -4,7 +4,7 @@ import StockCard from "../components/StockCard";
 import SearchBar from "../components/SearchBar";
 import StockPriceChart from "../components/StockPriceChart";
 import PortfolioHistoryChart from "../components/PortfolioHistoryChart";
-import axios from "axios";
+import { api } from "../stores/authStore";
 
 const PAGE_SIZE = 12;
 
@@ -19,9 +19,7 @@ const [dashboardData, setDashboardData] = useState({
 useEffect(() => {
   const fetchDashboardData = async () => {
     try {
-      const res = await axios.get("http://localhost:3000/portfolio-api/portfolio", {
-        withCredentials: true
-      });
+      const res = await api.get("/portfolio-api/portfolio");
       if (res.data.payload) {
         setDashboardData({
           walletBalance: res.data.payload.walletBalance || 0,
@@ -46,6 +44,8 @@ const [page, setPage] = useState(0);
 const [stocks, setStocks] = useState([]);
 const [loadingStocks, setLoadingStocks] = useState(true);
 const [loadingSymbols, setLoadingSymbols] = useState(true);
+const [lastUpdated, setLastUpdated] = useState(Date.now());
+const [secondsAgo, setSecondsAgo] = useState(0);
 
 // Selected stock for chart display (from search or click)
 const [selectedStock, setSelectedStock] = useState(null);
@@ -55,7 +55,7 @@ useEffect(() => {
   const fetchSymbols = async () => {
     try {
       setLoadingSymbols(true);
-      const res = await axios.get("http://localhost:3000/stock/symbols", { withCredentials: true });
+      const res = await api.get("/stock/symbols");
       setAllSymbols(res.data.payload || []);
     } catch (err) {
       console.error("Failed to fetch symbol list:", err);
@@ -78,10 +78,9 @@ useEffect(() => {
       if (isFirstLoad) setLoadingStocks(true);
 
       // Single batch call instead of N individual calls
-      const res = await axios.post(
-        "http://localhost:3000/stock/batch",
-        { symbols: pageSymbols.map((s) => s.symbol) },
-        { withCredentials: true }
+      const res = await api.post(
+        "/stock/batch",
+        { symbols: pageSymbols.map((s) => s.symbol) }
       );
 
       const quotes = res.data.payload || {};
@@ -102,6 +101,9 @@ useEffect(() => {
         .filter(Boolean)
         .sort((a, b) => (b.price || 0) - (a.price || 0));
       setStocks(liveStocks);
+      setSelectedStock((prev) => prev || liveStocks[0]);
+      setLastUpdated(Date.now());
+      setSecondsAgo(0);
     } catch (err) {
       console.error("Failed to fetch stock quotes:", err);
     } finally {
@@ -110,9 +112,27 @@ useEffect(() => {
   };
 
   fetchQuotes();
-  const interval = setInterval(fetchQuotes, 60000);
-  return () => clearInterval(interval);
+  const interval = setInterval(fetchQuotes, 120000); // 2 minute refresh
+  
+  // Update the "seconds ago" counter every second
+  const counterInterval = setInterval(() => {
+    setSecondsAgo((prev) => prev + 1);
+  }, 1000);
+  
+  return () => {
+    clearInterval(interval);
+    clearInterval(counterInterval);
+  };
 }, [allSymbols, page]);
+
+  const scrollToMarket = () => {
+    document.getElementById("market-section")?.scrollIntoView({ behavior: "smooth" });
+  };
+  
+  const handleStockSelect = (stock) => {
+    setSelectedStock(stock);
+    document.getElementById("chart-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
 return (
 
@@ -148,7 +168,10 @@ Risk Free
 Practice real-time trading using virtual money and improve your investing skills.
 </p>
 
-<button className="bg-gradient-to-r from-cyan-500 to-blue-600 px-8 py-4 rounded-2xl font-semibold shadow-2xl hover:scale-105 transition">
+<button 
+  onClick={scrollToMarket}
+  className="bg-gradient-to-r from-cyan-500 to-blue-600 px-8 py-4 rounded-2xl font-semibold shadow-2xl hover:scale-105 transition cursor-pointer"
+>
 Explore Market
 </button>
 
@@ -218,7 +241,7 @@ OPEN
 
 {/* STOCK CHART */}
 
-<div className="bg-white/10 backdrop-blur-xl border border-white/10 rounded-[32px] p-8 shadow-2xl mb-10">
+<div id="chart-section" className="bg-white/10 backdrop-blur-xl border border-white/10 rounded-[32px] p-8 shadow-2xl mb-10">
 
 {/* HEADER */}
 
@@ -243,10 +266,7 @@ onSelectStock={(stock) => setSelectedStock(stock)}
 
 <div className="w-full">
 
-<StockPriceChart
-symbol={selectedStock?.symbol}
-companyName={selectedStock?.companyName}
-/>
+<StockPriceChart stock={selectedStock} />
 
 </div>
 
@@ -254,7 +274,7 @@ companyName={selectedStock?.companyName}
 
 {/* MARKET */}
 
-<div className="bg-white/10 backdrop-blur-xl border border-white/10 rounded-[32px] p-8 shadow-2xl">
+<div id="market-section" className="bg-white/10 backdrop-blur-xl border border-white/10 rounded-[32px] p-8 shadow-2xl">
 
 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8">
 
@@ -278,7 +298,11 @@ Market Overview
 
 </div>
 
-<div className="flex items-center gap-3">
+<div className="flex items-center gap-4">
+
+<span className="text-sm font-mono text-gray-400">
+  Updated: {secondsAgo}s ago
+</span>
 
 <button
 disabled={page === 0 || loadingStocks}
@@ -317,7 +341,7 @@ Fetching live prices...
 ) : (
 
 stocks.map((stock, index) => (
-<StockCard key={index} stock={stock} />
+<StockCard key={index} stock={stock} onClick={handleStockSelect} />
 ))
 
 )}

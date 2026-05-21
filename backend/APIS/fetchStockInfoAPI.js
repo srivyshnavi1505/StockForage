@@ -78,21 +78,26 @@ FetchStockInfo.get('/symbols', async (req, res) => {
 FetchStockInfo.get('/history/:symbol', async (req, res) => {
     try {
         const sym = req.params.symbol.toUpperCase()
-        const days = parseInt(req.query.days) || 30
+        const timeframe = req.query.timeframe?.toUpperCase() || '1M'
 
-        const cacheKey = `history_${sym}_${days}`
+        const cacheKey = `history_${sym}_${timeframe}`
         const cached = getCache(cacheKey)
         if (cached) return res.status(200).json({ payload: cached })
 
-        // Map days to Yahoo Finance range parameter
-        const rangeMap = { 7: '5d', 30: '1mo', 90: '3mo' }
-        const range = rangeMap[days] || '1mo'
+        const configMap = {
+            '1D': { range: '1d', interval: '5m', dbDays: 1 },
+            '1W': { range: '5d', interval: '15m', dbDays: 7 },
+            '1M': { range: '1mo', interval: '1d', dbDays: 30 },
+            '1Y': { range: '1y', interval: '1d', dbDays: 365 }
+        }
+        
+        const { range, interval, dbDays } = configMap[timeframe] || configMap['1M']
 
         // Primary: Yahoo Finance chart API — free, no API key
         try {
             const yahoo = await axios.get(
                 `https://query1.finance.yahoo.com/v8/finance/chart/${sym}`, {
-                    params: { range, interval: '1d' },
+                    params: { range, interval },
                     headers: { 'User-Agent': 'Mozilla/5.0' }
                 }
             )
@@ -117,7 +122,7 @@ FetchStockInfo.get('/history/:symbol', async (req, res) => {
 
         // Fallback: local StockSnapshot DB, aggregated by date
         const since = new Date()
-        since.setDate(since.getDate() - days)
+        since.setDate(since.getDate() - dbDays)
         const snapshots = await stockSnapshotModel
             .find({ symbol: sym, recordedAt: { $gte: since } })
             .sort({ recordedAt: 1 })
@@ -223,5 +228,46 @@ FetchStockInfo.get('/:symbol', async (req, res) => {
         res.status(200).json({ message: 'Quote data', payload })
     } catch (err) {
         res.status(500).json({ message: 'Failed to fetch stock data', payload: err.message })
+    }
+})
+
+// GET /stock/details/:symbol — returns rich company metrics (cached 5 min)
+FetchStockInfo.get('/details/:symbol', async (req, res) => {
+    try {
+        const sym = req.params.symbol.toUpperCase()
+        const cacheKey = `details_${sym}`
+
+        const cached = getCache(cacheKey)
+        if (cached) return res.status(200).json({ payload: cached })
+
+        const APIkey = process.env.FINN_APIKEY
+        
+        // Fetch from Finnhub Metric API
+        const response = await axios.get('https://finnhub.io/api/v1/stock/metric', {
+            params: { symbol: sym, metric: 'all', token: APIkey },
+        })
+
+        const metric = response.data?.metric
+
+        if (!metric) {
+            return res.status(404).json({ message: 'Details not found' })
+        }
+
+        const payload = {
+            marketCap: metric.marketCapitalization ? metric.marketCapitalization * 1000000 : 'N/A',
+            volume: metric['3MonthAverageTradingVolume'] ? metric['3MonthAverageTradingVolume'] * 1000000 : 'N/A',
+            fiftyTwoWeekHigh: metric['52WeekHigh'] || 'N/A',
+            fiftyTwoWeekLow: metric['52WeekLow'] || 'N/A',
+            peRatio: metric.peExclExtraTTM || metric.peTTM || 'N/A',
+            dividendYield: metric.currentDividendYieldTTM 
+                ? Number(metric.currentDividendYieldTTM).toFixed(2) + '%' 
+                : (metric.dividendYieldIndicatedAnnual ? Number(metric.dividendYieldIndicatedAnnual).toFixed(2) + '%' : 'N/A')
+        }
+
+        setCache(cacheKey, payload, 5 * 60 * 1000) // cache 5 min
+        res.status(200).json({ payload })
+    } catch (err) {
+        console.error(`[Details] Failed to fetch details for ${req.params.symbol}:`, err.message)
+        res.status(500).json({ message: 'Failed to fetch company details', payload: err.message })
     }
 })

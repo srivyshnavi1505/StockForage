@@ -5,6 +5,8 @@ function Sidebar() {
 
   const currentUser = useAuth((state) => state.currentUser);
   const logout = useAuth((state) => state.logout);
+  const watchlist = useAuth((state) => state.watchlist) || [];
+  const toggleWatchlist = useAuth((state) => state.toggleWatchlist);
 
   const navigate = useNavigate();
 
@@ -23,7 +25,7 @@ function Sidebar() {
 
       {/* PROFILE CARD */}
 
-      <div className="relative overflow-hidden bg-white/10 border border-white/10 rounded-[32px] p-8 shadow-2xl backdrop-blur-xl">
+      <div className="relative overflow-hidden bg-white/10 border border-white/10 rounded-[32px] p-8 shadow-2xl backdrop-blur-xl flex-shrink-0">
 
         {/* GLOW */}
 
@@ -65,7 +67,7 @@ function Sidebar() {
 
       {/* QUICK STATS */}
 
-      <div className="mt-8 space-y-4">
+      <div className="mt-8 space-y-4 flex-shrink-0">
 
         <div className="bg-white/10 border border-white/10 rounded-2xl p-5 backdrop-blur-xl">
 
@@ -93,11 +95,29 @@ function Sidebar() {
 
       </div>
 
+      {/* WATCHLIST */}
+      
+      <div className="mt-8 flex-1 overflow-y-auto pr-2 custom-scrollbar">
+        <h3 className="text-gray-400 text-sm font-semibold mb-3 tracking-wider uppercase">Watchlist</h3>
+        {watchlist.length === 0 ? (
+          <p className="text-xs text-gray-500">No stocks in watchlist.</p>
+        ) : (
+          <div className="space-y-3">
+            {watchlist.map(sym => (
+              <div key={sym} className="flex justify-between items-center bg-white/5 rounded-2xl p-4 border border-white/5 hover:bg-white/10 transition-colors">
+                <span className="font-bold">{sym}</span>
+                <button onClick={() => toggleWatchlist(sym)} className="text-red-400 hover:text-red-300 text-xs font-semibold px-2 py-1 bg-red-500/10 rounded-lg">Remove</button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* LOGOUT */}
 
       <button
         onClick={handleLogout}
-        className="mt-auto bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 py-4 rounded-2xl font-semibold shadow-2xl transition-all duration-300 hover:scale-[1.02]"
+        className="mt-6 flex-shrink-0 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 py-4 rounded-2xl font-semibold shadow-2xl transition-all duration-300 hover:scale-[1.02]"
       >
 
         Logout

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import axios from "axios"
+import { api } from "../stores/authStore"
 import PortfolioHistoryChart from "../components/PortfolioHistoryChart"
 
 function Portfolio() {
@@ -14,9 +14,8 @@ function Portfolio() {
     try {
       setLoading(true)
       setError(null)
-      const res = await axios.get("http://localhost:3000/portfolio-api/portfolio", {
-        withCredentials: true
-      })
+      // Uses the centralized api instance so 401 errors are intercepted
+      const res = await api.get("/portfolio-api/portfolio")
       if (res.data.payload) {
         setPortfolioData(res.data.payload)
       } else {

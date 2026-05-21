@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import axios from "axios"
+import { api } from "../stores/authStore"
 import { Line } from "react-chartjs-2"
 import {
   Chart as ChartJS,
@@ -27,10 +27,7 @@ function PortfolioHistoryChart() {
     const fetchHistory = async () => {
       try {
         setLoading(true)
-        const res = await axios.get(
-          "http://localhost:3000/portfolio-api/portfolio/history",
-          { withCredentials: true }
-        )
+        const res = await api.get("/portfolio-api/portfolio/history")
         setHistory(res.data.payload || [])
       } catch (err) {
         if (err.response?.status === 401) {

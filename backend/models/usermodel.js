@@ -25,6 +25,10 @@ const userschema = new Schema({
     cash:{
         type:Number,
         default:1000000
+    },
+    watchlist: {
+        type: [String],
+        default: []
     }
 },{
     timestamps:true,
