@@ -4,11 +4,9 @@ import { persist } from "zustand/middleware";
 
 // Axios instance — base URL + credentials in one place
 const api = axios.create({
-  baseURL: "http://localhost:3000",
-  withCredentials: true, // sends httpOnly cookies automatically
+  baseURL: import.meta.env.BACKEND_URL,
+  withCredentials: true,
 });
-
-
 
 // Auto-attach JWT from store to every request
 api.interceptors.request.use((config) => {

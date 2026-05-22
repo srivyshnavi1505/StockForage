@@ -21,9 +21,9 @@ function Register() {
     try {
 
       let resObj = await axios.post(
-        "http://localhost:3000/user-api/register",
-        newUser
-      );
+  `${import.meta.env.BACKEND_URL}/user-api/register`,
+  newUser
+);
 
       console.log(resObj);
 
