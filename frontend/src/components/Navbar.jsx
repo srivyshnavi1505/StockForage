@@ -19,6 +19,7 @@ function Navbar() {
   const location = useLocation();
 
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const [showLoginNotification, setShowLoginNotification] =
     useState(true);
@@ -131,30 +132,48 @@ function Navbar() {
 
           </div>
 
-          {/* NAVIGATION */}
+          {/* MOBILE MENU BUTTON */}
+          <div className="md:hidden flex items-center">
+            <button
+              onClick={() => setShowMobileMenu(!showMobileMenu)}
+              className="text-white text-2xl focus:outline-none"
+            >
+              {showMobileMenu ? "✕" : "☰"}
+            </button>
+          </div>
 
-          <div className="flex items-center gap-4 flex-wrap">
+          {/* NAVIGATION */}
+          <div
+            className={`md:flex items-center gap-4 ${
+              showMobileMenu
+                ? "flex flex-col absolute top-full left-0 w-full bg-[#0F172A] p-5 border-b border-white/10 shadow-2xl z-50"
+                : "hidden"
+            }`}
+          >
 
             {!currentUser ? (
 
               <>
 
                 <Link
-                  className="px-5 py-2 rounded-2xl bg-white/10 border border-white/10 text-gray-300 hover:bg-cyan-500 hover:text-white transition-all duration-300 shadow-lg"
+                  onClick={() => setShowMobileMenu(false)}
+                  className="w-full md:w-auto text-center px-5 py-2 rounded-2xl bg-white/10 border border-white/10 text-gray-300 hover:bg-cyan-500 hover:text-white transition-all duration-300 shadow-lg"
                   to="/"
                 >
                   Home
                 </Link>
 
                 <Link
-                  className="px-5 py-2 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold shadow-xl hover:scale-105 transition-all duration-300"
+                  onClick={() => setShowMobileMenu(false)}
+                  className="w-full md:w-auto text-center px-5 py-2 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold shadow-xl hover:scale-105 transition-all duration-300"
                   to="/login"
                 >
                   Login
                 </Link>
 
                 <Link
-                  className="px-5 py-2 rounded-2xl bg-white text-black font-semibold shadow-xl hover:scale-105 transition-all duration-300"
+                  onClick={() => setShowMobileMenu(false)}
+                  className="w-full md:w-auto text-center px-5 py-2 rounded-2xl bg-white text-black font-semibold shadow-xl hover:scale-105 transition-all duration-300"
                   to="/register"
                 >
                   Register
@@ -167,28 +186,32 @@ function Navbar() {
               <>
 
                 <Link
-                  className="px-5 py-2 rounded-2xl bg-white/10 border border-white/10 text-gray-300 hover:bg-cyan-500 hover:text-white transition-all duration-300 shadow-lg"
+                  onClick={() => setShowMobileMenu(false)}
+                  className="w-full md:w-auto text-center px-5 py-2 rounded-2xl bg-white/10 border border-white/10 text-gray-300 hover:bg-cyan-500 hover:text-white transition-all duration-300 shadow-lg"
                   to="/dashboard"
                 >
                   Dashboard
                 </Link>
 
                 <Link
-                  className="px-5 py-2 rounded-2xl bg-white/10 border border-white/10 text-gray-300 hover:bg-cyan-500 hover:text-white transition-all duration-300 shadow-lg"
+                  onClick={() => setShowMobileMenu(false)}
+                  className="w-full md:w-auto text-center px-5 py-2 rounded-2xl bg-white/10 border border-white/10 text-gray-300 hover:bg-cyan-500 hover:text-white transition-all duration-300 shadow-lg"
                   to="/portfolio"
                 >
                   Portfolio
                 </Link>
 
                 <Link
-                  className="px-5 py-2 rounded-2xl bg-white/10 border border-white/10 text-gray-300 hover:bg-cyan-500 hover:text-white transition-all duration-300 shadow-lg"
+                  onClick={() => setShowMobileMenu(false)}
+                  className="w-full md:w-auto text-center px-5 py-2 rounded-2xl bg-white/10 border border-white/10 text-gray-300 hover:bg-cyan-500 hover:text-white transition-all duration-300 shadow-lg"
                   to="/leaderboard"
                 >
                   Leaderboard
                 </Link>
 
                 <Link
-                  className="px-5 py-2 rounded-2xl bg-white/10 border border-white/10 text-gray-300 hover:bg-cyan-500 hover:text-white transition-all duration-300 shadow-lg"
+                  onClick={() => setShowMobileMenu(false)}
+                  className="w-full md:w-auto text-center px-5 py-2 rounded-2xl bg-white/10 border border-white/10 text-gray-300 hover:bg-cyan-500 hover:text-white transition-all duration-300 shadow-lg"
                   to="/history"
                 >
                   Trade History
@@ -196,11 +219,11 @@ function Navbar() {
 
                 {/* PROFILE */}
 
-                <div className="relative">
+                <div className="relative w-full md:w-auto">
 
                   <button
                     onClick={() => setShowDropdown(!showDropdown)}
-                    className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-white/10 border border-white/10 hover:bg-white/20 transition-all duration-300"
+                    className="w-full md:w-auto flex justify-center items-center gap-3 px-4 py-2 rounded-2xl bg-white/10 border border-white/10 hover:bg-white/20 transition-all duration-300"
                   >
 
                     <div className="w-11 h-11 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 flex items-center justify-center text-white font-bold shadow-2xl">
@@ -223,9 +246,9 @@ function Navbar() {
 
                   {showDropdown && (
 
-                    <div className="absolute right-0 mt-4 w-64 bg-[#111827] border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+                    <div className="absolute right-0 md:right-0 left-0 md:left-auto mt-4 w-full md:w-64 bg-[#111827] border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50">
 
-                      <div className="px-5 py-4 border-b border-white/10">
+                      <div className="px-5 py-4 border-b border-white/10 text-center md:text-left">
 
                         <p className="text-white font-bold text-lg">
                           {currentUser?.username}
@@ -240,7 +263,7 @@ function Navbar() {
 
                       <button
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-5 py-4 text-red-400 hover:bg-red-500/10 transition-all duration-300"
+                        className="w-full flex justify-center md:justify-start items-center gap-3 px-5 py-4 text-red-400 hover:bg-red-500/10 transition-all duration-300"
                       >
 
                         <FiLogOut />

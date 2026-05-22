@@ -123,23 +123,23 @@ return (
 
 <div className="min-h-screen bg-gradient-to-br from-[#020617] via-[#0F172A] to-[#111827] text-white">
 
-<div className="flex gap-6 p-6 bg-[#020617] min-h-screen">
+<div className="flex flex-col lg:flex-row gap-6 p-4 md:p-6 bg-[#020617] min-h-screen">
 
 <Sidebar />
 
 <div className="flex-1 overflow-auto rounded-[32px]">
 
-<div className="p-10 max-w-[1400px] mx-auto">
+<div className="p-4 md:p-10 max-w-[1400px] mx-auto">
 
 {/* HERO */}
 
-<div className="relative overflow-hidden rounded-[32px] bg-gradient-to-r from-cyan-500/20 via-blue-500/10 to-purple-500/20 border border-white/10 backdrop-blur-xl p-10 mb-10">
+<div className="relative overflow-hidden rounded-[32px] bg-gradient-to-r from-cyan-500/20 via-blue-500/10 to-purple-500/20 border border-white/10 backdrop-blur-xl p-6 md:p-10 mb-10">
 
 <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/20 blur-[120px] rounded-full"></div>
 
 <div className="relative z-10">
 
-<h1 className="text-6xl font-extrabold leading-tight mb-4">
+<h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-4">
 
 Trade Stocks <br />
 
