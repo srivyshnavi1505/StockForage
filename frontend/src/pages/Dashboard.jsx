@@ -14,7 +14,7 @@ function Dashboard() {
 const walletBalance = useAuth((s) => s.walletBalance);
 const portfolioValue = useAuth((s) => s.portfolioValue);
 const refreshDashboard = useAuth((s) => s.refreshDashboard);
-const totalProfit = portfolioValue + walletBalance - 100000;
+const totalProfit = portfolioValue + walletBalance - 1000000;
 
 useEffect(() => {
   refreshDashboard();
