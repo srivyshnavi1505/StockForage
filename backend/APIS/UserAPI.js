@@ -48,6 +48,7 @@ Userapp.post('/login', async (req, res, next) => {
             httpOnly: true,
             secure: true,
             sameSite: "None",
+            path: "/",
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
 
@@ -270,6 +271,7 @@ Userapp.get('/logout', (req, res) => {
         httpOnly: true,
         secure: true,
         sameSite: "None",
+        path: "/",
     });
 
     res.status(200).json({

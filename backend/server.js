@@ -16,16 +16,27 @@ const app = exp();
 
 
 
+const ALLOWED_ORIGINS = [
+    // local dev
+    "http://localhost:5173",
+    "http://localhost:3000",
+];
+
 app.use(cors({
     origin: function (origin, callback) {
 
-        // allow postman/mobile apps
+        // allow requests with no origin (e.g. server-to-server, curl)
         if (!origin) {
             return callback(null, true);
         }
 
-        // allow all vercel deployments
-        if (origin.includes(".vercel.app")) {
+        // allow all *.vercel.app deployments (covers preview & production)
+        if (origin.endsWith(".vercel.app")) {
+            return callback(null, true);
+        }
+
+        // allow explicit list (localhost dev)
+        if (ALLOWED_ORIGINS.includes(origin)) {
             return callback(null, true);
         }
 
@@ -33,6 +44,8 @@ app.use(cors({
     },
 
     credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
+    optionsSuccessStatus: 200,
 }));
 
 

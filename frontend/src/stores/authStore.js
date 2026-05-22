@@ -13,12 +13,13 @@ api.interceptors.response.use(
 
   async (error) => {
 
-    // Prevent infinite logout loops
+    // Only clear auth if session is confirmed and not still loading
+    const { isAuthenticated, sessionLoading } = useAuth.getState();
     if (
       error.response?.status === 401 &&
-      useAuth.getState().isAuthenticated
+      isAuthenticated &&
+      !sessionLoading
     ) {
-
       useAuth.setState({
         currentUser: null,
         isAuthenticated: false,
@@ -42,6 +43,7 @@ export const useAuth = create(
 
       currentUser: null,
       isAuthenticated: false,
+      sessionLoading: true,   // true until first verifySession() completes
       loading: false,
       error: null,
       watchlist: [],
@@ -161,6 +163,8 @@ export const useAuth = create(
 
       verifySession: async () => {
 
+        set({ sessionLoading: true });
+
         try {
 
           const res = await api.get(
@@ -170,6 +174,7 @@ export const useAuth = create(
           set({
             currentUser: res.data.payload,
             isAuthenticated: true,
+            sessionLoading: false,
             error: null,
           });
 
@@ -184,6 +189,7 @@ export const useAuth = create(
           set({
             currentUser: null,
             isAuthenticated: false,
+            sessionLoading: false,
             watchlist: [],
           });
         }
@@ -256,9 +262,6 @@ export const useAuth = create(
       partialize: (state) => ({
         currentUser:
           state.currentUser,
-
-        isAuthenticated:
-          state.isAuthenticated,
       }),
     }
   )
