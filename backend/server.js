@@ -1,57 +1,118 @@
-import exp from 'express'
+import exp from 'express';
 import mongoose from "mongoose";
-import { Userapp } from './APIS/UserAPI.js'
-import { PortfolioApp } from './APIS/PortfolioAPI.js'
-import { TradeApp } from './APIS/TradeAPI.js'
-import cookieParser from 'cookie-parser'
-import { FetchStockInfo } from './APIS/fetchStockInfoAPI.js'
-import { startStockSnapshotCron } from './crons/SnapshotCron.js'
-import cors from 'cors'
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import { config } from 'dotenv';
 
-config()
+import { Userapp } from './APIS/UserAPI.js';
+import { PortfolioApp } from './APIS/PortfolioAPI.js';
+import { TradeApp } from './APIS/TradeAPI.js';
+import { FetchStockInfo } from './APIS/fetchStockInfoAPI.js';
+import { startStockSnapshotCron } from './crons/SnapshotCron.js';
 
-const app = exp()
+config();
+
+const app = exp();
+
+// ================= CORS =================
 
 app.use(cors({
-    origin: "https://stock-forage.vercel.app",
-    credentials: true
-}))
+    origin: function (origin, callback) {
 
-app.use(exp.json())
-app.use(cookieParser())
+        // allow requests with no origin
+        // (mobile apps, postman, curl, etc.)
+        if (!origin) {
+            return callback(null, true);
+        }
 
-app.use('/user-api', Userapp)
-app.use('/stock', FetchStockInfo)
-app.use('/trade-api', TradeApp)
-app.use('/portfolio-api', PortfolioApp)
+        // allow all vercel deployments
+        if (
+            origin.includes(".vercel.app")
+        ) {
+            return callback(null, true);
+        }
+
+        // allowed production frontend
+        const allowedOrigins = [
+            "https://stock-forage.vercel.app",
+        ];
+
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+
+        return callback(
+            new Error("Not allowed by CORS")
+        );
+    },
+
+    credentials: true,
+}));
+
+// ================= MIDDLEWARES =================
+
+app.use(exp.json());
+
+app.use(cookieParser());
+
+// ================= ROUTES =================
+
+app.use('/user-api', Userapp);
+
+app.use('/stock', FetchStockInfo);
+
+app.use('/trade-api', TradeApp);
+
+app.use('/portfolio-api', PortfolioApp);
+
+// ================= ERROR HANDLER =================
 
 function ErrorHandler(err, req, res, next) {
+
+    console.log(err);
+
     res.status(err.status || 500).json({
         message: "error occured",
-        payload: err.message
-    })
+        payload: err.message,
+    });
 }
 
-app.use(ErrorHandler)
+app.use(ErrorHandler);
+
+// ================= DATABASE CONNECTION =================
 
 async function connectDB() {
+
     try {
-        await mongoose.connect(process.env.MONGO_URL)
 
-        console.log("connected to database")
+        await mongoose.connect(
+            process.env.MONGO_URL
+        );
 
-        startStockSnapshotCron()
+        console.log(
+            "connected to database"
+        );
 
-        const PORT = process.env.PORT || 3000
+        // start cron jobs
+        startStockSnapshotCron();
 
-        app.listen(PORT, () =>
-            console.log(`listening on port ${PORT}`)
-        )
+        const PORT =
+            process.env.PORT || 3000;
+
+        app.listen(PORT, () => {
+
+            console.log(
+                `server listening on port ${PORT}`
+            );
+        });
 
     } catch (err) {
-        console.log('error occured:', err)
+
+        console.log(
+            "database connection error:",
+            err
+        );
     }
 }
 
-connectDB()
+connectDB();

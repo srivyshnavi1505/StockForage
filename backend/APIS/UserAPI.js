@@ -22,12 +22,11 @@ Userapp.post('/login', async (req, res, next) => {
     try {
         const {email, password} = req.body
         const {token, user} = await authenticate({email, password})
-
-        res.cookie('token', token, {
-            httpOnly: true,
-            sameSite: "lax",
-            secure: false
-        })
+        res.cookie("token", token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "None",
+});
         res.status(200).json({message: "login succes", payload: user})
     } catch (err) {
         next(err)

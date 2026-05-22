@@ -2,132 +2,209 @@ import axios from "axios";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-// Axios instance — base URL + credentials in one place
+// ================= AXIOS INSTANCE =================
+
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true,
 });
 
-// Auto-attach JWT from store to every request
-api.interceptors.request.use((config) => {
-  const token = useAuth.getState().token;
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
+// ================= RESPONSE INTERCEPTOR =================
 
-
-
-// Auto-logout on 401 (expired/invalid token)
 api.interceptors.response.use(
   (res) => res,
-  (err) => {
-    if (err.response?.status === 401) {
-      useAuth.getState().logout();
-      window.location.href = "/login";
+
+  async (err) => {
+
+    // Prevent infinite logout loops
+    if (
+      err.response?.status === 401 &&
+      useAuth.getState().isAuthenticated
+    ) {
+
+      useAuth.setState({
+        currentUser: null,
+        isAuthenticated: false,
+        error: "Session expired",
+      });
     }
+
     return Promise.reject(err);
   }
 );
 
+export { api };
 
-
-export { api }; // use this `api` instance everywhere instead of plain axios
+// ================= AUTH STORE =================
 
 export const useAuth = create(
-  // persist saves to localStorage automatically — survives refresh
+
   persist(
+
     (set, get) => ({
+
+      // ---------- STATE ----------
+
       currentUser: null,
-      token: null,
       isAuthenticated: false,
       loading: false,
       error: null,
 
+      watchlist: [],
+
+      // ================= LOGIN =================
+
       login: async (userCredObj) => {
+
         try {
-          set({ loading: true, error: null });
-
-          const res = await api.post("/user-api/login", userCredObj);
-
-          // Expect backend to return { payload: userObj, token: "jwt..." }
-          const { payload, token } = res.data;
 
           set({
-            loading: false,
-            isAuthenticated: true,
-            currentUser: payload,
-            token,
+            loading: true,
             error: null,
           });
-          get().fetchWatchlist();
+
+          const res = await api.post(
+            "/user-api/login",
+            userCredObj
+          );
+
+          const { payload } = res.data;
+
+          set({
+            currentUser: payload,
+            isAuthenticated: true,
+            loading: false,
+            error: null,
+          });
+
+          await get().fetchWatchlist();
+
+          return true;
+
         } catch (err) {
+
           set({
             loading: false,
-            isAuthenticated: false,
             currentUser: null,
-            token: null,
-            error: err.response?.data?.message || "Login failed",
+            isAuthenticated: false,
+            error:
+              err.response?.data?.message ||
+              "Login failed",
           });
+
+          return false;
         }
       },
-      
+
+      // ================= LOGOUT =================
 
       logout: async () => {
+
         try {
-          set({ loading: true, error: null });
+
           await api.get("/user-api/logout");
-        } catch {
-          // Even if server logout fails, clear client state
+
+        } catch (err) {
+
+          console.log("Logout API failed");
+
         } finally {
+
           set({
-            loading: false,
-            isAuthenticated: false,
             currentUser: null,
-            token: null,
+            isAuthenticated: false,
+            loading: false,
             error: null,
+            watchlist: [],
           });
         }
       },
 
-      // Call this once on app boot to revalidate persisted token
+      // ================= VERIFY SESSION =================
+
       verifySession: async () => {
-        const { token } = get();
-        if (!token) return;
 
         try {
+
           const res = await api.get("/user-api/verify");
-          set({ currentUser: res.data.payload, isAuthenticated: true });
-          get().fetchWatchlist();
-        } catch {
-          // Token expired — clear everything
-          get().logout();
+
+          set({
+            currentUser: res.data.payload,
+            isAuthenticated: true,
+          });
+
+          await get().fetchWatchlist();
+
+        } catch (err) {
+
+          console.log("Session verification failed");
+
+          set({
+            currentUser: null,
+            isAuthenticated: false,
+          });
         }
       },
 
-      watchlist: [],
+      // ================= WATCHLIST =================
+
       fetchWatchlist: async () => {
+
         try {
-          const res = await api.get("/user-api/watchlist");
-          set({ watchlist: res.data.payload || [] });
+
+          const res = await api.get(
+            "/user-api/watchlist"
+          );
+
+          set({
+            watchlist: res.data.payload || [],
+          });
+
         } catch (err) {
-          console.error("Failed to fetch watchlist", err);
-        }
-      },
-      toggleWatchlist: async (symbol) => {
-        try {
-          const res = await api.post("/user-api/watchlist", { symbol });
-          set({ watchlist: res.data.payload || [] });
-        } catch (err) {
-          console.error("Failed to toggle watchlist", err);
+
+          console.log(
+            "Failed to fetch watchlist",
+            err
+          );
         }
       },
 
-      clearError: () => set({ error: null }),
+      toggleWatchlist: async (symbol) => {
+
+        try {
+
+          const res = await api.post(
+            "/user-api/watchlist",
+            { symbol }
+          );
+
+          set({
+            watchlist: res.data.payload || [],
+          });
+
+        } catch (err) {
+
+          console.log(
+            "Failed to toggle watchlist",
+            err
+          );
+        }
+      },
+
+      // ================= CLEAR ERROR =================
+
+      clearError: () =>
+        set({
+          error: null,
+        }),
     }),
+
+    // ================= PERSIST =================
+
     {
-      name: "auth-storage",         // localStorage key
-      partialize: (state) => ({     // only persist these fields
-        token: state.token,
+      name: "auth-storage",
+
+      partialize: (state) => ({
         currentUser: state.currentUser,
         isAuthenticated: state.isAuthenticated,
       }),
