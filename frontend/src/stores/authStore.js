@@ -47,6 +47,8 @@ export const useAuth = create(
       loading: false,
       error: null,
       watchlist: [],
+      walletBalance: 0,
+      portfolioValue: 0,
 
 
       login: async (userCredObj) => {
@@ -221,6 +223,27 @@ export const useAuth = create(
 
 
 
+      // Update wallet balance after a trade (called from StockCard)
+      updateWallet: (newBalance) => {
+        set({ walletBalance: newBalance });
+      },
+
+      // Re-fetch portfolio summary from the API and refresh wallet + portfolio value
+      refreshDashboard: async () => {
+        try {
+          const res = await api.get("/portfolio-api/portfolio");
+          const payload = res.data.payload;
+          if (payload) {
+            set({
+              walletBalance: payload.walletBalance || 0,
+              portfolioValue: payload.summary?.totalValue || 0,
+            });
+          }
+        } catch (err) {
+          console.log("refreshDashboard failed", err);
+        }
+      },
+
       toggleWatchlist: async (
         symbol
       ) => {
@@ -263,6 +286,14 @@ export const useAuth = create(
         currentUser:
           state.currentUser,
       }),
+
+      // Keep sessionLoading=true during the async localStorage read so
+      // ProtectedRoute never flashes to /login during rehydration.
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          state.sessionLoading = true;
+        }
+      },
     }
   )
 );

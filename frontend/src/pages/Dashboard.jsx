@@ -4,37 +4,22 @@ import StockCard from "../components/StockCard";
 import SearchBar from "../components/SearchBar";
 import StockPriceChart from "../components/StockPriceChart";
 import PortfolioHistoryChart from "../components/PortfolioHistoryChart";
-import { api } from "../stores/authStore";
+import { api, useAuth } from "../stores/authStore";
 
 const PAGE_SIZE = 12;
 
 function Dashboard() {
 
-const [dashboardData, setDashboardData] = useState({
-  walletBalance: 0,
-  portfolioValue: 0,
-  totalProfit: 0
-});
+// Subscribe to live wallet + portfolio from the store (updated after every trade)
+const walletBalance = useAuth((s) => s.walletBalance);
+const portfolioValue = useAuth((s) => s.portfolioValue);
+const refreshDashboard = useAuth((s) => s.refreshDashboard);
+const totalProfit = portfolioValue + walletBalance - 100000;
 
 useEffect(() => {
-  const fetchDashboardData = async () => {
-    try {
-      const res = await api.get("/portfolio-api/portfolio");
-      if (res.data.payload) {
-        setDashboardData({
-          walletBalance: res.data.payload.walletBalance || 0,
-          portfolioValue: res.data.payload.summary?.totalValue || 0,
-          totalProfit: res.data.payload.summary?.totalPnl || 0
-        });
-      }
-    } catch (err) {
-      console.error("Failed to fetch dashboard data:", err);
-    }
-  };
-  fetchDashboardData();
+  refreshDashboard();
 }, []);
 
-const { walletBalance, portfolioValue, totalProfit } = dashboardData;
 
 // All available symbols (symbol + companyName) from Finnhub
 const [allSymbols, setAllSymbols] = useState([]);

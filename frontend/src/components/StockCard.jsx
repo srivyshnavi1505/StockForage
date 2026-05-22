@@ -1,19 +1,17 @@
 import { useState, useMemo } from "react"
 import toast from "react-hot-toast"
 import { useAuth, api } from "../stores/authStore"
-import { useApp } from "../context/AppContext"
 import { ResponsiveContainer, LineChart, Line } from "recharts"
 
 function StockCard({ stock, onClick }) {
   const [quantity, setQuantity] = useState(1)
   const [loading, setLoading] = useState(false)
 
-  const updateWallet = useAuth((state) => state.updateWallet)
+  const refreshDashboard = useAuth((state) => state.refreshDashboard)
   const watchlist = useAuth((state) => state.watchlist) || []
   const toggleWatchlist = useAuth((state) => state.toggleWatchlist)
   
   const isWatched = watchlist.includes(stock.symbol)
-  const { buyStock, sellStock } = useApp()
 
   const isUp = stock.change && !stock.change.toString().includes("-")
   
@@ -43,18 +41,14 @@ function StockCard({ stock, onClick }) {
       )
       const newWallet = res.data.payload.wallet
 
-      // 1. Update wallet in Sidebar via authStore
-      if (updateWallet) updateWallet(newWallet)
-
-      // 2. Update portfolio/trades in AppContext
-      if (type === "BUY") buyStock(stock)
-      else sellStock(stock)
+      // Refresh wallet + portfolio value from the server
+      await refreshDashboard()
 
       toast.success(
         `${type === "BUY" ? "Bought" : "Sold"} ${quantity} ${stock.symbol} · Wallet: ₹${newWallet.toLocaleString("en-IN")}`
       )
     } catch (err) {
-      toast.error(err.response?.data?.payload || err.message)
+      toast.error(err.response?.data?.message || err.response?.data?.payload || err.message)
     } finally {
       setLoading(false)
     }
