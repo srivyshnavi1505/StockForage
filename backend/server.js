@@ -90,29 +90,25 @@ async function connectDB() {
             process.env.MONGO_URL
         );
 
-        console.log(
-            "Connected to database"
-        );
+        console.log("Connected to database");
 
         startStockSnapshotCron();
 
-        const PORT =
-            process.env.PORT || 3000;
-
-        app.listen(PORT, () => {
-
-            console.log(
-                `Server running on port ${PORT}`
-            );
-        });
-
     } catch (err) {
 
-        console.log(
-            "Database connection error:",
-            err
-        );
+        console.error("Database connection error:", err);
+
+        // Exit so Render marks deploy as failed with visible logs
+        // rather than silently running with no DB.
+        process.exit(1);
     }
 }
 
-connectDB();
+const PORT = process.env.PORT || 3000;
+
+// Always start listening first so Render's health-check succeeds
+// and we can see logs even if DB connection takes a moment.
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    connectDB();
+});
