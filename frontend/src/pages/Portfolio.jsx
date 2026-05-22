@@ -38,7 +38,7 @@ function Portfolio() {
   return (
     <div className="p-6 space-y-4">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">My Portfolio</h1>
+        <h1 className="text-2xl font-bold text-white">My Portfolio</h1>
         <button
           onClick={fetchPortfolio}
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 text-sm"
