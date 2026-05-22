@@ -123,7 +123,7 @@ return (
 
 <div className="min-h-screen bg-gradient-to-br from-[#020617] via-[#0F172A] to-[#111827] text-white">
 
-<div className="flex gap-6 p-6 bg-[#020617] min-h-screen">
+<div className="flex flex-col lg:flex-row gap-6 p-4 md:p-6 bg-[#020617] min-h-screen">
 
 <Sidebar />
 
