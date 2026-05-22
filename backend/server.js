@@ -14,48 +14,33 @@ config();
 
 const app = exp();
 
-// ================= CORS =================
+
 
 app.use(cors({
     origin: function (origin, callback) {
 
-        // allow requests with no origin
-        // (mobile apps, postman, curl, etc.)
+        // allow postman/mobile apps
         if (!origin) {
             return callback(null, true);
         }
 
         // allow all vercel deployments
-        if (
-            origin.includes(".vercel.app")
-        ) {
+        if (origin.includes(".vercel.app")) {
             return callback(null, true);
         }
 
-        // allowed production frontend
-        const allowedOrigins = [
-            "https://stock-forage.vercel.app",
-        ];
-
-        if (allowedOrigins.includes(origin)) {
-            return callback(null, true);
-        }
-
-        return callback(
-            new Error("Not allowed by CORS")
-        );
+        callback(new Error("Not allowed by CORS"));
     },
 
     credentials: true,
 }));
 
-// ================= MIDDLEWARES =================
+
 
 app.use(exp.json());
 
 app.use(cookieParser());
 
-// ================= ROUTES =================
 
 app.use('/user-api', Userapp);
 
@@ -65,21 +50,24 @@ app.use('/trade-api', TradeApp);
 
 app.use('/portfolio-api', PortfolioApp);
 
-// ================= ERROR HANDLER =================
 
-function ErrorHandler(err, req, res, next) {
+
+app.use((req, res) => {
+    res.status(404).json({
+        message: "Route not found"
+    });
+});
+
+
+app.use((err, req, res, next) => {
 
     console.log(err);
 
     res.status(err.status || 500).json({
-        message: "error occured",
-        payload: err.message,
+        message: err.message || "Server error",
     });
-}
+});
 
-app.use(ErrorHandler);
-
-// ================= DATABASE CONNECTION =================
 
 async function connectDB() {
 
@@ -90,10 +78,9 @@ async function connectDB() {
         );
 
         console.log(
-            "connected to database"
+            "Connected to database"
         );
 
-        // start cron jobs
         startStockSnapshotCron();
 
         const PORT =
@@ -102,14 +89,14 @@ async function connectDB() {
         app.listen(PORT, () => {
 
             console.log(
-                `server listening on port ${PORT}`
+                `Server running on port ${PORT}`
             );
         });
 
     } catch (err) {
 
         console.log(
-            "database connection error:",
+            "Database connection error:",
             err
         );
     }

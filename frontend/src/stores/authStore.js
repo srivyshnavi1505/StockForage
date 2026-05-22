@@ -2,40 +2,37 @@ import axios from "axios";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-// ================= AXIOS INSTANCE =================
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true,
 });
 
-// ================= RESPONSE INTERCEPTOR =================
-
 api.interceptors.response.use(
-  (res) => res,
+  (response) => response,
 
-  async (err) => {
+  async (error) => {
 
     // Prevent infinite logout loops
     if (
-      err.response?.status === 401 &&
+      error.response?.status === 401 &&
       useAuth.getState().isAuthenticated
     ) {
 
       useAuth.setState({
         currentUser: null,
         isAuthenticated: false,
+        watchlist: [],
         error: "Session expired",
       });
     }
 
-    return Promise.reject(err);
+    return Promise.reject(error);
   }
 );
 
 export { api };
 
-// ================= AUTH STORE =================
 
 export const useAuth = create(
 
@@ -43,16 +40,12 @@ export const useAuth = create(
 
     (set, get) => ({
 
-      // ---------- STATE ----------
-
       currentUser: null,
       isAuthenticated: false,
       loading: false,
       error: null,
-
       watchlist: [],
 
-      // ================= LOGIN =================
 
       login: async (userCredObj) => {
 
@@ -77,18 +70,19 @@ export const useAuth = create(
             error: null,
           });
 
+          // fetch watchlist after login
           await get().fetchWatchlist();
 
           return true;
 
-        } catch (err) {
+        } catch (error) {
 
           set({
-            loading: false,
             currentUser: null,
             isAuthenticated: false,
+            loading: false,
             error:
-              err.response?.data?.message ||
+              error.response?.data?.message ||
               "Login failed",
           });
 
@@ -96,17 +90,61 @@ export const useAuth = create(
         }
       },
 
-      // ================= LOGOUT =================
+
+      register: async (newUser) => {
+
+        try {
+
+          set({
+            loading: true,
+            error: null,
+          });
+
+          const res = await api.post(
+            "/user-api/register",
+            newUser
+          );
+
+          set({
+            loading: false,
+            error: null,
+          });
+
+          return {
+            success: true,
+            data: res.data,
+          };
+
+        } catch (error) {
+
+          set({
+            loading: false,
+            error:
+              error.response?.data?.message ||
+              "Registration failed",
+          });
+
+          return {
+            success: false,
+          };
+        }
+      },
+
 
       logout: async () => {
 
         try {
 
-          await api.get("/user-api/logout");
+          await api.get(
+            "/user-api/logout"
+          );
 
-        } catch (err) {
+        } catch (error) {
 
-          console.log("Logout API failed");
+          console.log(
+            "Logout API failed",
+            error
+          );
 
         } finally {
 
@@ -120,33 +158,38 @@ export const useAuth = create(
         }
       },
 
-      // ================= VERIFY SESSION =================
 
       verifySession: async () => {
 
         try {
 
-          const res = await api.get("/user-api/verify");
+          const res = await api.get(
+            "/user-api/verify"
+          );
 
           set({
             currentUser: res.data.payload,
             isAuthenticated: true,
+            error: null,
           });
 
           await get().fetchWatchlist();
 
-        } catch (err) {
+        } catch (error) {
 
-          console.log("Session verification failed");
+          console.log(
+            "Session verification failed"
+          );
 
           set({
             currentUser: null,
             isAuthenticated: false,
+            watchlist: [],
           });
         }
       },
 
-      // ================= WATCHLIST =================
+  
 
       fetchWatchlist: async () => {
 
@@ -157,19 +200,24 @@ export const useAuth = create(
           );
 
           set({
-            watchlist: res.data.payload || [],
+            watchlist:
+              res.data.payload || [],
           });
 
-        } catch (err) {
+        } catch (error) {
 
           console.log(
             "Failed to fetch watchlist",
-            err
+            error
           );
         }
       },
 
-      toggleWatchlist: async (symbol) => {
+
+
+      toggleWatchlist: async (
+        symbol
+      ) => {
 
         try {
 
@@ -179,34 +227,38 @@ export const useAuth = create(
           );
 
           set({
-            watchlist: res.data.payload || [],
+            watchlist:
+              res.data.payload || [],
           });
 
-        } catch (err) {
+        } catch (error) {
 
           console.log(
             "Failed to toggle watchlist",
-            err
+            error
           );
         }
       },
 
-      // ================= CLEAR ERROR =================
 
-      clearError: () =>
+      clearError: () => {
+
         set({
           error: null,
-        }),
+        });
+      },
     }),
 
-    // ================= PERSIST =================
 
     {
       name: "auth-storage",
 
       partialize: (state) => ({
-        currentUser: state.currentUser,
-        isAuthenticated: state.isAuthenticated,
+        currentUser:
+          state.currentUser,
+
+        isAuthenticated:
+          state.isAuthenticated,
       }),
     }
   )
