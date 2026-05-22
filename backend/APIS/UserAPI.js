@@ -64,50 +64,38 @@ Userapp.post('/login', async (req, res, next) => {
 });
 
 
-Userapp.get('/verify', async (req, res) => {
+Userapp.get(
+    '/verify',
+    verifyToken,
+    async (req, res, next) => {
 
-    try {
+        try {
 
-        const token =
-            req.cookies.token;
+            const user =
+                await userModel
+                    .findOne({
+                        email: req.user.email
+                    })
+                    .select("-password");
 
-        if (!token) {
+            if (!user) {
 
-            return res.status(401).json({
-                message: "No token"
+                return res.status(404).json({
+                    message: "User not found"
+                });
+            }
+
+            res.status(200).json({
+                message: "Session valid",
+                payload: user
             });
+
+        } catch (err) {
+
+            next(err);
         }
-
-        const decoded =
-            jwt.verify(
-                token,
-                process.env.JWT_SECRET
-            );
-
-        const user =
-            await userModel
-                .findById(decoded.userId)
-                .select("-password");
-
-        if (!user) {
-
-            return res.status(404).json({
-                message: "User not found"
-            });
-        }
-
-        res.status(200).json({
-            message: "Verified",
-            payload: user
-        });
-
-    } catch (err) {
-
-        res.status(401).json({
-            message: "Invalid token"
-        });
     }
-});
+);
 
 
 
