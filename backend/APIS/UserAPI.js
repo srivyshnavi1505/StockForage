@@ -54,9 +54,9 @@ Userapp.post('/login', async (req, res, next) => {
 
         res.status(200).json({
             message: "Login success",
-            payload: user
+            payload: user,
+            token
         });
-
     } catch (err) {
 
         next(err);
@@ -98,6 +98,18 @@ Userapp.get(
 );
 
 
+
+Userapp.get("/verify", verifyToken, async (req, res, next) => {
+    try {
+        const user = await userModel.findOne({ email: req.user.email }).select("-password");
+        if (!user) {
+            return res.status(401).json({ message: "User not found" });
+        }
+        res.status(200).json({ message: "Session verified", payload: user });
+    } catch (err) {
+        next(err);
+    }
+});
 
 Userapp.get("/users", async (req, res) => {
 
