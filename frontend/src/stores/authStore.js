@@ -4,7 +4,7 @@ import { persist } from "zustand/middleware";
 
 // Axios instance — base URL + credentials in one place
 const api = axios.create({
-  baseURL: import.meta.env.BACKEND_URL,
+  baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true,
 });
 

@@ -21,7 +21,7 @@ function Register() {
     try {
 
       let resObj = await axios.post(
-  `${import.meta.env.BACKEND_URL}/user-api/register`,
+  `${import.meta.env.VITE_API_URL}/user-api/register`,
   newUser
 );
 
