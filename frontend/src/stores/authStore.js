@@ -8,12 +8,16 @@ const api = axios.create({
   withCredentials: true, // sends httpOnly cookies automatically
 });
 
+
+
 // Auto-attach JWT from store to every request
 api.interceptors.request.use((config) => {
   const token = useAuth.getState().token;
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
+
+
 
 // Auto-logout on 401 (expired/invalid token)
 api.interceptors.response.use(
@@ -26,6 +30,8 @@ api.interceptors.response.use(
     return Promise.reject(err);
   }
 );
+
+
 
 export { api }; // use this `api` instance everywhere instead of plain axios
 
@@ -66,6 +72,7 @@ export const useAuth = create(
           });
         }
       },
+      
 
       logout: async () => {
         try {

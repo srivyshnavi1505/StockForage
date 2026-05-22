@@ -2,7 +2,7 @@ import exp from 'express'
 import { userModel } from '../models/usermodel.js'
 import { tradeModel } from '../models/Trade.js'
 import { verifyToken } from '../middlewares/verifyToken.js'
-import { executeTrade } from '../services/TradeService.js'
+import { executeTrade } from '../services/tradeService.js'
 
 export const TradeApp = exp.Router()
 
