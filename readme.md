@@ -213,9 +213,7 @@ Open **http://localhost:5173** in your browser.
 
 ---
 
-## Screenshots
 
-> *Coming soon — register, dashboard with charts, portfolio, and leaderboard views.*
 
 ---
 
