@@ -19,7 +19,7 @@ function Sidebar() {
 
   return (
 
-    <div className="w-full lg:w-72 lg:min-h-screen bg-gradient-to-b from-[#0F172A] via-[#111827] to-[#020617] border-b lg:border-b-0 lg:border-r border-white/10 backdrop-blur-xl text-white flex flex-col p-8 shadow-2xl rounded-[32px] lg:rounded-none">
+    <div className="hidden lg:flex w-72 min-h-screen bg-gradient-to-b from-[#0F172A] via-[#111827] to-[#020617] border-r border-white/10 backdrop-blur-xl text-white flex-col p-8 shadow-2xl">
 
  
 
