@@ -19,6 +19,7 @@ function Navbar() {
   const location = useLocation();
 
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const [showLoginNotification, setShowLoginNotification] =
     useState(true);
