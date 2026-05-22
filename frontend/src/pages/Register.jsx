@@ -17,7 +17,6 @@ function Register() {
 
     setLoading(true);
     setError(null);
-
     try {
 
       let resObj = await axios.post(
