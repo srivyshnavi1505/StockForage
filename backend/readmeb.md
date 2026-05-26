@@ -91,7 +91,7 @@ backend/
 
 ### User
 - `username`, `email`, `passwordHash`
-- `walletBalance` — starts at ₹1,00,000
+- `walletBalance` — starts at ₹10,00,000
 
 ### Portfolio
 - `userId`, `symbol`, `companyName`
